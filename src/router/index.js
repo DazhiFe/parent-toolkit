@@ -18,7 +18,11 @@ const router = createRouter({
       name: 'ai-tools',
       component: () => import('../views/AiToolsView.vue')
     },
-
+    {
+      path: '/pomodoro-timer',
+      name: 'pomodoro-timer',
+      component: () => import('../views/PomodoroTimerView.vue')
+    },
     {
       path: '/about',
       name: 'about',
