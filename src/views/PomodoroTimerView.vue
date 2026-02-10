@@ -318,11 +318,11 @@ onUnmounted(() => {
       </div>
 
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
-        <div class="flex justify-center gap-4 mb-8">
+        <div class="flex justify-center gap-2 sm:gap-4 mb-8 flex-wrap">
           <button
             @click="setTimerType('work')"
             :class="[
-              'px-6 py-3 rounded-full font-medium transition-all',
+              'px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               timerType === 'work' 
                 ? 'bg-red-500 text-white shadow-lg' 
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -333,7 +333,7 @@ onUnmounted(() => {
           <button
             @click="setTimerType('shortBreak')"
             :class="[
-              'px-6 py-3 rounded-full font-medium transition-all',
+              'px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               timerType === 'shortBreak' 
                 ? 'bg-green-500 text-white shadow-lg' 
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -344,7 +344,7 @@ onUnmounted(() => {
           <button
             @click="setTimerType('longBreak')"
             :class="[
-              'px-6 py-3 rounded-full font-medium transition-all',
+              'px-3 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               timerType === 'longBreak' 
                 ? 'bg-blue-500 text-white shadow-lg' 
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -386,12 +386,12 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="flex justify-center gap-4 mb-8">
+        <div class="flex justify-center gap-2 sm:gap-4 mb-8 flex-wrap">
           <button
             @click="startTimer"
             :disabled="isRunning"
             :class="[
-              'px-8 py-3 rounded-full font-medium transition-all',
+              'px-4 sm:px-8 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               isRunning 
                 ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' 
                 : 'bg-green-500 text-white hover:bg-green-600 shadow-lg hover:shadow-xl'
@@ -403,7 +403,7 @@ onUnmounted(() => {
             @click="pauseTimer"
             :disabled="!isRunning"
             :class="[
-              'px-8 py-3 rounded-full font-medium transition-all',
+              'px-4 sm:px-8 py-2 sm:py-3 rounded-full font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               !isRunning 
                 ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' 
                 : 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg hover:shadow-xl'
@@ -413,7 +413,7 @@ onUnmounted(() => {
           </button>
           <button
             @click="resetTimer"
-            class="px-8 py-3 rounded-full font-medium bg-gray-500 text-white hover:bg-gray-600 shadow-lg hover:shadow-xl transition-all"
+            class="px-4 sm:px-8 py-2 sm:py-3 rounded-full font-medium bg-gray-500 text-white hover:bg-gray-600 shadow-lg hover:shadow-xl transition-all whitespace-nowrap text-sm sm:text-base"
           >
             重置
           </button>
