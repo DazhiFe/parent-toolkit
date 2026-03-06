@@ -12,6 +12,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  base: '/parent-toolkit/',
   server: {
     port: 3000,
     open: true
