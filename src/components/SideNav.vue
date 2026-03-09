@@ -4,13 +4,11 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-// 首页导航项列表
 const homeNavItems = ref([
   { id: 'websites', title: '常用网站', icon: 'globe' },
   { id: 'tools', title: '常用工具', icon: 'tools' }
 ])
 
-// AI工具导航项列表
 const aiToolsNavItems = ref([
   { id: 'ai-chat', title: 'AI对话助手', icon: 'chat' },
   { id: 'ai-image', title: 'AI图形生成', icon: 'image' },
@@ -19,41 +17,41 @@ const aiToolsNavItems = ref([
   { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' }
 ])
 
+const studyAssistantNavItems = ref([
+  { id: 'chinese', title: '语文', icon: 'book' },
+  { id: 'math', title: '数学', icon: 'calculator' },
+  { id: 'english', title: '英语', icon: 'language' }
+])
 
-
-// 根据当前路由获取导航项列表
 const navItems = computed(() => {
   switch (route.path) {
     case '/ai-tools':
       return aiToolsNavItems.value
+    case '/study-assistant':
+      return studyAssistantNavItems.value
     default:
       return homeNavItems.value
   }
 })
 
-// 当前激活的导航项
 const activeNav = ref('websites')
 
-// 监听路由变化，更新激活的导航项
 watch(() => route.path, (newPath) => {
-  // 重置滚动位置到页面顶部
   window.scrollTo(0, 0)
   
-  // 根据路由设置初始激活项
   if (newPath === '/ai-tools') {
     activeNav.value = 'ai-chat'
+  } else if (newPath === '/study-assistant') {
+    activeNav.value = 'chinese'
   } else if (newPath === '/') {
     activeNav.value = 'websites'
   }
 }, { immediate: true })
 
-// 滚动到指定锚点
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId)
   if (element) {
-    // 获取固定导航的高度
     const headerHeight = document.querySelector('header').offsetHeight
-    // 计算目标位置（考虑固定导航的高度）
     const targetPosition = element.offsetTop - headerHeight - 20
 
     window.scrollTo({
@@ -63,17 +61,14 @@ const scrollToSection = (sectionId) => {
   }
 }
 
-// 监听滚动事件，更新激活的导航项
 const handleScroll = () => {
   const sections = navItems.value.map(item => ({
     id: item.id,
     element: document.getElementById(item.id)
   }))
 
-  // 获取当前滚动位置
   const scrollPosition = window.scrollY + 100
 
-  // 找出当前所在的区域
   for (let i = sections.length - 1; i >= 0; i--) {
     const section = sections[i]
     if (section.element && section.element.offsetTop <= scrollPosition) {
@@ -85,7 +80,7 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
-  handleScroll() // 初始化时调用一次
+  handleScroll()
 })
 
 onUnmounted(() => {
@@ -96,7 +91,7 @@ onUnmounted(() => {
 <template>
   <aside class="hidden lg:block fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto z-40">
     <div class="p-4">
-      <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{{ route.path === '/' ? '常用网站' : route.path === '/ai-tools' ? 'AI工具' : route.path === '/study-tools' ? '学习工具' : '成长工具' }}</h3>
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{{ route.path === '/' ? '常用网站' : route.path === '/ai-tools' ? 'AI工具' : route.path === '/study-assistant' ? '学习助手' : route.path === '/study-tools' ? '学习工具' : '成长工具' }}</h3>
       <nav>
         <ul class="space-y-2">
           <li v-for="item in navItems" :key="item.id">

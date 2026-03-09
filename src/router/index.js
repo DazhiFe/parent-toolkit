@@ -14,6 +14,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/study-assistant',
+      name: 'study-assistant',
+      component: () => import('../views/StudyAssistantView.vue')
+    },
+    {
       path: '/ai-tools',
       name: 'ai-tools',
       component: () => import('../views/AiToolsView.vue')
@@ -22,6 +27,11 @@ const router = createRouter({
       path: '/pomodoro-timer',
       name: 'pomodoro-timer',
       component: () => import('../views/PomodoroTimerView.vue')
+    },
+    {
+      path: '/math-three-digit',
+      name: 'math-three-digit',
+      component: () => import('../views/MathThreeDigitView.vue')
     },
     {
       path: '/about',

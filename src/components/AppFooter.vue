@@ -6,7 +6,7 @@ const route = useRoute()
 
 // 判断是否需要为左侧导航栏留出空间
 const hasSideNav = computed(() => {
-  return ['/', '/ai-tools', '/study-tools', '/growth-tools'].includes(route.path)
+  return ['/', '/ai-tools', '/study-assistant', '/growth-tools'].includes(route.path)
 })
 </script>
 
