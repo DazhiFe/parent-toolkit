@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>家长工具箱</title>
+    <script>
+      // 单页应用（SPA）在 GitHub Pages 上的重定向脚本
+      // 将路径存储到 sessionStorage，然后重定向到首页
+      const path = window.location.pathname;
+      const basePath = '/parent-toolkit';
+      
+      if (path.startsWith(basePath)) {
+        const routePath = path.replace(basePath, '');
+        sessionStorage.setItem('spa-route', routePath);
+        window.location.replace(basePath + '/');
+      }
+    </script>
+  </head>
+  <body>
+    <p>页面加载中...</p>
+  </body>
+</html>
