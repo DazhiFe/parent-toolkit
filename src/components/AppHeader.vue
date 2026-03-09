@@ -26,7 +26,7 @@ const isActiveRoute = (path) => {
         <RouterLink to="/" class="text-xl font-bold text-primary-600 dark:text-primary-400">家长工具箱</RouterLink>
         <div class="hidden md:flex space-x-6">
           <RouterLink to="/" :class="isActiveRoute('/') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">首页</RouterLink>
-          <RouterLink to="/study-assistant" :class="isActiveRoute('/study-assistant') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">学习助手</RouterLink>
+          <RouterLink to="/study-assistant" :class="isActiveRoute('/study-assistant') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">AI学习助手</RouterLink>
           <RouterLink to="/ai-tools" :class="isActiveRoute('/ai-tools') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">AI工具</RouterLink>
           <RouterLink to="/about" :class="isActiveRoute('/about') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">关于</RouterLink>
         </div>

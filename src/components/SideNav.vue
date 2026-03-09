@@ -18,8 +18,8 @@ const aiToolsNavItems = ref([
 ])
 
 const studyAssistantNavItems = ref([
-  { id: 'chinese', title: '语文', icon: 'book' },
   { id: 'math', title: '数学', icon: 'calculator' },
+  { id: 'chinese', title: '语文', icon: 'book' },
   { id: 'english', title: '英语', icon: 'language' }
 ])
 
@@ -91,7 +91,7 @@ onUnmounted(() => {
 <template>
   <aside class="hidden lg:block fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto z-40">
     <div class="p-4">
-      <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{{ route.path === '/' ? '常用网站' : route.path === '/ai-tools' ? 'AI工具' : route.path === '/study-assistant' ? '学习助手' : route.path === '/study-tools' ? '学习工具' : '成长工具' }}</h3>
+      <!-- <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{{ route.path === '/' ? '常用网站' : route.path === '/ai-tools' ? 'AI工具' : route.path === '/study-assistant' ? 'AI学习助手' : route.path === '/study-tools' ? '学习工具' : '成长工具' }}</h3> -->
       <nav>
         <ul class="space-y-2">
           <li v-for="item in navItems" :key="item.id">

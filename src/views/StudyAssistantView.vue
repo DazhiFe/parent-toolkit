@@ -91,11 +91,11 @@ const englishTools = [
         <h1 class="text-3xl font-bold dark:text-white">学习助手</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">为孩子提供各学科学习资源和辅导工具</p>
       </div>
-      
-      <section id="chinese" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">语文</h2>
+
+      <section id="math" class="mb-12">
+        <h2 class="text-2xl font-semibold mb-6 dark:text-white">数学</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div v-for="tool in chineseTools" :key="tool.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+          <div v-for="tool in mathTools" :key="tool.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div :class="['mb-4 flex items-center justify-center h-24 rounded-lg', `bg-${tool.color}-50 dark:bg-${tool.color}-900/20`]">
               <div :class="['font-bold text-lg', `text-${tool.color}-600 dark:text-${tool.color}-400`]">{{ tool.name }}</div>
             </div>
@@ -106,10 +106,10 @@ const englishTools = [
         </div>
       </section>
       
-      <section id="math" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">数学</h2>
+      <section id="chinese" class="mb-12">
+        <h2 class="text-2xl font-semibold mb-6 dark:text-white">语文</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div v-for="tool in mathTools" :key="tool.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+          <div v-for="tool in chineseTools" :key="tool.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div :class="['mb-4 flex items-center justify-center h-24 rounded-lg', `bg-${tool.color}-50 dark:bg-${tool.color}-900/20`]">
               <div :class="['font-bold text-lg', `text-${tool.color}-600 dark:text-${tool.color}-400`]">{{ tool.name }}</div>
             </div>

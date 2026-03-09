@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百以内加减题目生成器</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #eeeeee;
+            --module-bg: #ffffff;
+            --result-bg: #ffffff;
+            --result-border: #dddddd;
+            --desc-color: #666666;
+        }
+        
+        .dark {
+            --bg-color: #1f2937;
+            --text-color: #f3f4f6;
+            --border-color: #374151;
+            --module-bg: #1f2937;
+            --result-bg: #111827;
+            --result-border: #374151;
+            --desc-color: #9ca3af;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .module {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--module-bg);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .module-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .module-desc {
+            color: var(--desc-color);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        input[type="number"] {
+            width: 60px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px;
+        }
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        label {
+            color: var(--text-color);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            white-space: pre-line;
+            border: 1px solid var(--result-border);
+            padding: 15px;
+            min-height: 100px;
+            border-radius: 5px;
+            background-color: var(--result-bg);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        h1 {
+            color: var(--text-color);
+        }
+        
+        /* 打印样式 */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .print-container {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .print-page {
+                page-break-after: always;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .print-page:last-child {
+                page-break-after: avoid;
+            }
+            
+            .print-header {
+                text-align: center;
+                font-size: 24pt;
+                margin-bottom: 40px;
+                font-weight: bold;
+            }
+            
+            .print-date {
+                margin-bottom: 6px;
+            }
+            
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 1px solid #aaa;
+            }
+            
+            .print-table td {
+                width: 25%;
+                padding: 14px 6px;
+                text-align: center;
+                font-size: 24pt;
+                font-family: "Calibri", sans-serif;
+                vertical-align: middle;
+                line-height: 1.5;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>百以内加减题目生成器</h1>
+    
+    <div class="module">
+        <div class="module-header">一、相同数相加</div>
+        <div class="module-desc">两位数加两位数，和不超过100，十位随机，两个数的个位相同(5和5、6和6、7和7、8和8、9和9)</div>
+        <div class="controls">
+            <input type="checkbox" id="module1" name="module1">
+            <label for="module1">启用</label>
+            <label for="count1">题目数量:</label>
+            <input type="number" id="count1" name="count1" min="1" value="6">
+        </div>
+    </div>
+    
+    <div class="module">
+        <div class="module-header">二、相邻数相加</div>
+        <div class="module-desc">两位数加两位数，和不超过100，十位随机，两个数的个位相邻(5和6、6和7、7和8、8和9)</div>
+        <div class="controls">
+            <input type="checkbox" id="module2" name="module2">
+            <label for="module2">启用</label>
+            <label for="count2">题目数量:</label>
+            <input type="number" id="count2" name="count2" min="1" value="6">
+        </div>
+                </div>
+    
+    <div class="module">
+        <div class="module-header">三、5+n</div>
+        <div class="module-desc">两位数加两位数，和不超过100，十位随机，两个数的个位组合(5和7、5和8、5和9)</div>
+        <div class="controls">
+            <input type="checkbox" id="module3" name="module3">
+            <label for="module3">启用</label>
+            <label for="count3">题目数量:</label>
+            <input type="number" id="count3" name="count3" min="1" value="6">
+                </div>
+                </div>
+    
+    <div class="module">
+        <div class="module-header">四、5+n的逆运算</div>
+        <div class="module-desc">两位数减两位数，十位随机，个位组合(1和5、1和6、2和5、2和7、3和5、3和8、4和5、4和9)</div>
+        <div class="controls">
+            <input type="checkbox" id="module4" name="module4">
+            <label for="module4">启用</label>
+            <label for="count4">题目数量:</label>
+            <input type="number" id="count4" name="count4" min="1" value="6">
+                </div>
+    </div>
+    
+    <div class="module">
+        <div class="module-header">五、9+n</div>
+        <div class="module-desc">两位数加两位数，和不超过100，十位随机，个位组合(9和1、9和2、9和3、9和4、9和5、9和6、9和7、9和8)</div>
+        <div class="controls">
+            <input type="checkbox" id="module5" name="module5">
+            <label for="module5">启用</label>
+            <label for="count5">题目数量:</label>
+            <input type="number" id="count5" name="count5" min="1" value="6">
+            </div>
+        </div>
+        
+    <div class="module">
+        <div class="module-header">六、9+n的逆运算</div>
+        <div class="module-desc">两位数减两位数，十位随机，个位组合(0和1、0和9、1和2、1和9等)</div>
+        <div class="controls">
+            <input type="checkbox" id="module6" name="module6">
+            <label for="module6">启用</label>
+            <label for="count6">题目数量:</label>
+            <input type="number" id="count6" name="count6" min="1" value="6">
+            </div>
+            </div>
+    
+    <div class="module">
+        <div class="module-header">七、8+n</div>
+        <div class="module-desc">两位数加两位数，和不超过100，十位随机，个位组合(8和2、8和3、8和4、8和5、8和6、8和7)</div>
+        <div class="controls">
+            <input type="checkbox" id="module7" name="module7">
+            <label for="module7">启用</label>
+            <label for="count7">题目数量:</label>
+            <input type="number" id="count7" name="count7" min="1" value="6">
+            </div>
+            </div>
+    
+    <div class="module">
+        <div class="module-header">八、8+n的逆运算</div>
+        <div class="module-desc">两位数减两位数，十位随机，个位组合(0和2、0和8、1和3、1和8等)</div>
+        <div class="controls">
+            <input type="checkbox" id="module8" name="module8">
+            <label for="module8">启用</label>
+            <label for="count8">题目数量:</label>
+            <input type="number" id="count8" name="count8" min="1" value="6">
+        </div>
+    </div>
+
+    <div class="module">
+        <div class="module-header">九、相同数相加逆运算</div>
+        <div class="module-desc">两位数减两位数，十位随机，个位组合(0和5、2和6、4和7)</div>
+        <div class="controls">
+            <input type="checkbox" id="module9" name="module9">
+            <label for="module9">启用</label>
+            <label for="count9">题目数量:</label>
+            <input type="number" id="count9" name="count9" min="1" value="6">
+        </div>
+    </div>
+
+    <div class="module">
+        <div class="module-header">十、相邻数相加的逆运算</div>
+        <div class="module-desc">两位数减两位数，十位随机，个位组合(3和6、3和7)</div>
+        <div class="controls">
+            <input type="checkbox" id="module10" name="module10">
+            <label for="module10">启用</label>
+            <label for="count10">题目数量:</label>
+            <input type="number" id="count10" name="count10" min="1" value="6">
+        </div>
+    </div>
+
+    <div class="module">
+        <div class="module-header">十一、4和7组合（加减混合）</div>
+        <div class="module-desc">加法：两位数+两位数，和不超过100，个位组合(4和7)；减法：两位数-两位数，个位组合(1和4、1和7)</div>
+        <div class="controls">
+            <input type="checkbox" id="module11" name="module11">
+            <label for="module11">启用</label>
+            <label for="count11">题目数量:</label>
+            <input type="number" id="count11" name="count11" min="1" value="6">
+            <label for="ratio11">加法比例(%):</label>
+            <input type="number" id="ratio11" name="ratio11" min="0" max="100" value="50">
+        </div>
+    </div>
+
+    <button id="generate">一键生成题目</button>
+    <button id="copyShuffled" style="margin-left: 10px; background-color: #2196F3;">一键复制题目</button>
+    <button id="randomGenerate" style="margin-left: 10px; background-color: #FF9800;">随机生成题目</button>
+    <input type="checkbox" id="customSettings" name="customSettings" style="margin-left: 10px;">
+    <label for="customSettings">自定义设置</label>
+    <button id="printButton" style="margin-left: 10px; background-color: #9C27B0;">打印题目</button>
+    
+    <div id="result"></div>
+    <iframe id="printFrame" style="display:none; width:0; height:0; border:0;"></iframe>
+    
+    <script>
+        /**
+         * 随机获取一条鼓励二年级小学生做数学题的话语
+         * @returns {string} 随机鼓励话语
+         */
+        function getRandomEncouragement() {
+            // 存储200条押韵的鼓励话语
+            const encouragements = [
+                "数字排队别眼花，细心算对顶呱呱！",
+                "每题都把步骤查，正确率高人人夸！",
+                "笔尖沙沙算得佳，今日小冠军非你呀！",
+                "加减符号别混淆，算对就是小行家！",
+                "百题挑战你不怕，算完笑脸像朵花！",
+                "进位退位别落下，认真算完顶呱呱！",
+                "错题改对进步大，你是班级小学霸！",
+                "数字游戏玩得溜，算对一题乐开花！",
+                "仔细读题别犯傻，答案准确人人夸！",
+                "每天练习不落下，计算本领顶呱呱！",
+                "算题坐姿要端庄，正确率高闪金光！",
+                "进位别忘加个'1'，你比星星更闪亮！",
+                "百题挑战你最狂，算完就是小霸王！",
+                "步骤清晰不慌忙，答案正确响当当！",
+                "错题消灭斗志昂，计算小能手你最强！",
+                "数字王国你闯荡，每题都能算漂亮！",
+                "细心就是小翅膀，带你算对不迷茫！",
+                "今日练习超流畅，老师给你竖大拇！",
+                "加减乘除我来扛，算完百题我最狂！",
+                "认真计算不慌张，全对就是你模样！",
+                "算题专注像闹钟，分秒必争超从容！",
+                "进位退位想清楚，全对答案超威风！",
+                "百题练习不放松，计算小达人往前冲！",
+                "数字伙伴手拉手，算对答案超优秀！",
+                "仔细检查不糊弄，正确率高超神勇！",
+                "每天练习不喊痛，计算本领会更猛！",
+                "步骤写满作业本，全对就是真英雄！",
+                "算错再来不发懵，坚持到底超带劲！",
+                "数字迷宫你打通，全对答案超拉风！",
+                "耐心算完每道题，你是班级小先锋！",
+                "算题思路要清晰，全对答案超牛气！",
+                "百题练习不犯愁，算完就是小能手！",
+                "数字排队跟你走，正确率高不落后！",
+                "进位退位别乱丢，算对答案超优秀！",
+                "每天练习不松手，计算本领赛小猴！",
+                "错题改正不别扭，进步飞快争上游！",
+                "算题速度像水流，全对答案最出挑！",
+                "仔细审题别忽悠，答案准确数你牛！",
+                "百题算完不喊累，你是学习小标兵！",
+                "数字游戏玩个够，算对就是最优秀！",
+                "算题仔细不偷懒，全对答案超灿烂！",
+                "百题挑战不困难，你是班级小好汉！",
+                "进位退位记心间，算对答案笑开颜！",
+                "数字宝宝排好班，你算得准又快！",
+                "每天练习不间断，计算本领不一般！",
+                "错题改对超惊艳，你是数学小模范！",
+                "算题就像闯关险，全对就是小英雄！",
+                "细心就是金钥匙，打开正确答案门！",
+                "百题算完不简单，老师给你点个赞！",
+                "数字迷宫你探险，算对答案超亮眼！",
+                "算题姿势要摆好，正确率高没烦恼！",
+                "百题练习不潦草，全对答案超闪耀！",
+                "加减符号别混淆，算对就是小骄傲！",
+                "进位退位记得牢，答案准确分不跑！",
+                "每天练习不迟到，计算本领节节高！",
+                "算错再来不急躁，坚持到底最闪耀！",
+                "数字游戏玩得妙，你是班级小骄傲！",
+                "步骤清晰不潦草，全对答案超俊俏！",
+                "百题挑战你接招，算完就是小大佬！",
+                "细心算对每道题，成绩肯定往上飙！",
+                "算题细心不悲催，全对答案超完美！",
+                "百题练习不掉队，你是学习小宝贝！",
+                "进位退位别忘配，算对答案超欣慰！",
+                "每天练习不喊累，计算本领赛过鬼！",
+                "错题改对不后悔，进步飞快你最会！",
+                "数字伙伴来配对，你算得准又快！",
+                "算题速度不拖尾，全对答案超顶配！",
+                "仔细检查不缺位，正确率高不卑微！",
+                "百题算完不疲惫，你是班级小精锐！",
+                "耐心算完不喊累，老师为你竖拇指！",
+                "算题专注超认真，全对答案暖人心！",
+                "百题挑战你最狠，算完就是小战神！",
+                "进位退位想得分，算对答案超提神！",
+                "每天练习不断更，计算本领超惊人！",
+                "错题改对长精神，你是学习小将军！",
+                "数字王国你称臣，算对答案超自信！",
+                "算题思路超清晰，全对答案最贴心！",
+                "百题算完不费神，老师夸你超聪明！",
+                "细心就是定海神，算对答案超稳赢！",
+                "坚持练习不灰心，计算小达人就是你！",
+                "算题仔细不马虎，全对答案超幸福！",
+                "百题挑战你接招，算完就是小骄傲！",
+                "加减符号别忘掉，算对答案超闪耀！",
+                "每天练习不迟到，进步飞快看得到！",
+                "错题改对超重要，你是学习小法宝！",
+                "数字伙伴手拉手，算对答案不落后！",
+                "算题速度像水流，全对就是最优秀！",
+                "百题算完不发愁，你是班级小领头！",
+                "细心就是小火车，带你算对不翻车！",
+                "坚持到底不退缩，计算小能手是我！",
+                "算题认真超给力，全对答案真争气！",
+                "数字迷宫你穿越，算对就是小豪杰！",
+                "进位退位别搞错，答案正确没话说！",
+                "每天练习不懒惰，计算本领会爆火！",
+                "错题改对超不错，你是班级小云朵！",
+                "算题就像画图画，全对就是小画家！",
+                "百题算完顶呱呱，老师夸你顶呱呱！",
+                "细心算对每一题，你是最棒小乖乖！",
+                "数字游戏真有趣，算对就是小奇迹！",
+                "坚持练习不停息，计算高手就是你！",
+                "算题认真超给力，全对答案真争气！",
+                "数字迷宫你穿越，算对就是小豪杰！",
+                "进位退位别搞错，答案正确没话说！",
+                "每天练习不懒惰，计算本领会爆火！",
+                "错题改对超不错，你是班级小云朵！",
+                "算题就像画图画，全对就是小画家！",
+                "百题算完顶呱呱，老师夸你顶呱呱！",
+                "细心算对每一题，你是最棒小乖乖！",
+                "数字游戏真有趣，算对就是小奇迹！",
+                "坚持练习不停息，计算高手就是你！",
+                "算题仔细不马虎，全对答案超幸福！",
+                "百题挑战你接招，算完就是小骄傲！",
+                "加减符号别忘掉，算对答案超闪耀！",
+                "每天练习不迟到，进步飞快看得到！",
+                "错题改对超重要，你是学习小法宝！",
+                "数字伙伴手拉手，算对答案不落后！",
+                "算题速度像水流，全对就是最优秀！",
+                "百题算完不发愁，你是班级小领头！",
+                "细心就是小火车，带你算对不翻车！",
+                "坚持到底不退缩，计算小能手是我！",
+                "算题思路超清晰，全对答案最贴心！",
+                "百题算完不费神，老师夸你超聪明！",
+                "细心就是定海神，算对答案超稳赢！",
+                "坚持练习不灰心，计算小达人就是你！",
+                "算题专注超认真，全对答案暖人心！",
+                "百题挑战你最狠，算完就是小战神！",
+                "进位退位想得分，算对答案超提神！",
+                "每天练习不断更，计算本领超惊人！",
+                "错题改对长精神，你是学习小将军！",
+                "数字王国你称臣，算对答案超自信！",
+                "算题细心不悲催，全对答案超完美！",
+                "百题练习不掉队，你是学习小宝贝！",
+                "进位退位别忘配，算对答案超欣慰！",
+                "每天练习不喊累，计算本领赛过鬼！",
+                "错题改对不后悔，进步飞快你最会！",
+                "数字伙伴来配对，你算得准又快！",
+                "算题速度不拖尾，全对答案超顶配！",
+                "仔细检查不缺位，正确率高不卑微！",
+                "百题算完不疲惫，你是班级小精锐！",
+                "耐心算完不喊累，老师为你竖拇指！",
+                "算题姿势要摆好，正确率高没烦恼！",
+                "百题练习不潦草，全对答案超闪耀！",
+                "加减符号别混淆，算对就是小骄傲！",
+                "进位退位记得牢，答案准确分不跑！",
+                "每天练习不迟到，计算本领节节高！",
+                "算错再来不急躁，坚持到底最闪耀！",
+                "数字游戏玩得妙，你是班级小骄傲！",
+                "步骤清晰不潦草，全对答案超俊俏！",
+                "百题挑战你接招，算完就是小大佬！",
+                "细心算对每道题，成绩肯定往上飙！",
+                "算题仔细不偷懒，全对答案超灿烂！",
+                "百题挑战不困难，你是班级小好汉！",
+                "进位退位记心间，算对答案笑开颜！",
+                "数字宝宝排好班，你算得准又快！",
+                "每天练习不间断，计算本领不一般！",
+                "错题改对超惊艳，你是数学小模范！",
+                "算题就像闯关险，全对就是小英雄！",
+                "细心就是金钥匙，打开正确答案门！",
+                "百题算完不简单，老师给你点个赞！",
+                "数字迷宫你探险，算对答案超亮眼！",
+                "算题专注像闹钟，分秒必争超从容！",
+                "进位退位想清楚，全对答案超威风！",
+                "百题练习不放松，计算小达人往前冲！",
+                "数字伙伴手拉手，算对答案超优秀！",
+                "仔细检查不糊弄，正确率高超神勇！",
+                "每天练习不喊痛，计算本领会更猛！",
+                "步骤写满作业本，全对就是真英雄！",
+                "算错再来不发懵，坚持到底超带劲！",
+                "数字迷宫你打通，全对答案超拉风！",
+                "耐心算完每道题，你是班级小先锋！",
+                "算题思路要清晰，全对答案超牛气！",
+                "百题练习不犯愁，算完就是小能手！",
+                "数字排队跟你走，正确率高不落后！",
+                "进位退位别乱丢，算对答案超优秀！",
+                "每天练习不松手，计算本领赛小猴！",
+                "错题改正不别扭，进步飞快争上游！",
+                "算题速度像水流，全对答案最出挑！",
+                "仔细审题别忽悠，答案准确数你牛！",
+                "百题算完不喊累，你是学习小标兵！",
+                "数字游戏玩个够，算对就是最优秀！"
+            ];
+            
+            // 生成随机索引并返回对应的鼓励话语
+            const randomIndex = Math.floor(Math.random() * encouragements.length);
+            return encouragements[randomIndex];
+        }
+
+        document.getElementById('generate').addEventListener('click', function() {
+            let result = '';
+            
+            // 模块一：相同数相加
+            if (document.getElementById('module1').checked) {
+                const count = parseInt(document.getElementById('count1').value);
+                result += generateModule1(count);
+            }
+            
+            // 模块二：相邻数相加
+            if (document.getElementById('module2').checked) {
+                const count = parseInt(document.getElementById('count2').value);
+                result += generateModule2(count);
+            }
+            
+            // 模块三：5+n
+            if (document.getElementById('module3').checked) {
+                const count = parseInt(document.getElementById('count3').value);
+                result += generateModule3(count);
+            }
+            
+            // 模块四：5+n的逆运算
+            if (document.getElementById('module4').checked) {
+                const count = parseInt(document.getElementById('count4').value);
+                result += generateModule4(count);
+            }
+            
+            // 模块五：9+n
+            if (document.getElementById('module5').checked) {
+                const count = parseInt(document.getElementById('count5').value);
+                result += generateModule5(count);
+            }
+            
+            // 模块六：9+n的逆运算
+            if (document.getElementById('module6').checked) {
+                const count = parseInt(document.getElementById('count6').value);
+                result += generateModule6(count);
+            }
+            
+            // 模块七：8+n
+            if (document.getElementById('module7').checked) {
+                const count = parseInt(document.getElementById('count7').value);
+                result += generateModule7(count);
+            }
+            
+            // 模块八：8+n的逆运算
+            if (document.getElementById('module8').checked) {
+                const count = parseInt(document.getElementById('count8').value);
+                result += generateModule8(count);
+            }
+            
+            // 模块九：相同数相加逆运算
+            if (document.getElementById('module9').checked) {
+                const count = parseInt(document.getElementById('count9').value);
+                result += generateModule9(count);
+            }
+            
+            // 模块十：相邻数相加的逆运算
+            if (document.getElementById('module10').checked) {
+                const count = parseInt(document.getElementById('count10').value);
+                result += generateModule10(count);
+            }
+            
+            // 模块十一：4和7组合（加减混合）
+            if (document.getElementById('module11').checked) {
+                const count = parseInt(document.getElementById('count11').value);
+                const ratio = parseInt(document.getElementById('ratio11').value);
+                result += generateModule11(count, ratio);
+            }
+            
+            document.getElementById('result').textContent = result;
+        });
+        
+        // 随机生成题目功能
+        document.getElementById('randomGenerate').addEventListener('click', function() {
+            // 检查是否启用自定义设置
+            if (document.getElementById('customSettings').checked) {
+                // 创建自定义设置对话框
+                showCustomSettingsDialog();
+            } else {
+                // 使用默认设置：24道题目
+                generateRandomProblems(24, 40);
+            }
+        });
+        
+        // 显示自定义设置对话框
+        function showCustomSettingsDialog() {
+            // 创建对话框元素
+            const dialogOverlay = document.createElement('div');
+            dialogOverlay.style.position = 'fixed';
+            dialogOverlay.style.top = '0';
+            dialogOverlay.style.left = '0';
+            dialogOverlay.style.width = '100%';
+            dialogOverlay.style.height = '100%';
+            dialogOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            dialogOverlay.style.display = 'flex';
+            dialogOverlay.style.justifyContent = 'center';
+            dialogOverlay.style.alignItems = 'center';
+            dialogOverlay.style.zIndex = '1000';
+            
+            const dialogBox = document.createElement('div');
+            dialogBox.style.backgroundColor = '#fff';
+            dialogBox.style.padding = '20px';
+            dialogBox.style.borderRadius = '5px';
+            dialogBox.style.width = '300px';
+            
+            // 对话框标题
+            const title = document.createElement('h3');
+            title.textContent = '自定义设置';
+            title.style.marginTop = '0';
+            dialogBox.appendChild(title);
+            
+            // 题目数量设置
+            const countLabel = document.createElement('label');
+            countLabel.textContent = '题目数量：';
+            countLabel.style.display = 'block';
+            countLabel.style.marginBottom = '5px';
+            dialogBox.appendChild(countLabel);
+            
+            const countInput = document.createElement('input');
+            countInput.type = 'number';
+            countInput.value = '24';
+            countInput.min = '11';
+            countInput.style.width = '100%';
+            countInput.style.marginBottom = '15px';
+            dialogBox.appendChild(countInput);
+            
+            // 加法比例设置
+            const addRatioLabel = document.createElement('label');
+            addRatioLabel.textContent = '加法比例(%)：';
+            addRatioLabel.style.display = 'block';
+            addRatioLabel.style.marginBottom = '5px';
+            dialogBox.appendChild(addRatioLabel);
+            
+            const addRatioInput = document.createElement('input');
+            addRatioInput.type = 'number';
+            addRatioInput.value = '40';
+            addRatioInput.min = '0';
+            addRatioInput.max = '100';
+            addRatioInput.style.width = '100%';
+            addRatioInput.style.marginBottom = '15px';
+            dialogBox.appendChild(addRatioInput);
+            
+            // 减法比例显示（只读，自动计算）
+            const subRatioLabel = document.createElement('label');
+            subRatioLabel.textContent = '减法比例(%)：';
+            subRatioLabel.style.display = 'block';
+            subRatioLabel.style.marginBottom = '5px';
+            dialogBox.appendChild(subRatioLabel);
+            
+            const subRatioDisplay = document.createElement('input');
+            subRatioDisplay.type = 'number';
+            subRatioDisplay.value = '60';
+            subRatioDisplay.readOnly = true;
+            subRatioDisplay.style.width = '100%';
+            subRatioDisplay.style.marginBottom = '20px';
+            subRatioDisplay.style.backgroundColor = '#f0f0f0';
+            dialogBox.appendChild(subRatioDisplay);
+            
+            // 当加法比例变化时，自动更新减法比例
+            addRatioInput.addEventListener('input', function() {
+                const addRatio = parseInt(addRatioInput.value) || 0;
+                // 确保加法比例在0-100之间
+                if (addRatio < 0) addRatioInput.value = '0';
+                if (addRatio > 100) addRatioInput.value = '100';
+                
+                // 更新减法比例
+                subRatioDisplay.value = 100 - parseInt(addRatioInput.value);
+            });
+            
+            // 确定按钮
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '确定';
+            confirmButton.style.padding = '8px 15px';
+            confirmButton.style.backgroundColor = '#4CAF50';
+            confirmButton.style.color = 'white';
+            confirmButton.style.border = 'none';
+            confirmButton.style.borderRadius = '4px';
+            confirmButton.style.cursor = 'pointer';
+            confirmButton.style.marginRight = '10px';
+            
+            // 取消按钮
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = '取消';
+            cancelButton.style.padding = '8px 15px';
+            cancelButton.style.backgroundColor = '#f44336';
+            cancelButton.style.color = 'white';
+            cancelButton.style.border = 'none';
+            cancelButton.style.borderRadius = '4px';
+            cancelButton.style.cursor = 'pointer';
+            
+            // 按钮容器
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'flex-end';
+            buttonContainer.appendChild(confirmButton);
+            buttonContainer.appendChild(cancelButton);
+            dialogBox.appendChild(buttonContainer);
+            
+            // 确定按钮点击事件
+            confirmButton.addEventListener('click', function() {
+                const count = parseInt(countInput.value);
+                const addRatio = parseInt(addRatioInput.value);
+                
+                // 验证输入
+                if (isNaN(count) || count < 11) {
+                    alert('题目数量必须至少为11！');
+                    return;
+                }
+                
+                if (isNaN(addRatio) || addRatio < 0 || addRatio > 100) {
+                    alert('加法比例必须在0-100之间！');
+                    return;
+                }
+                
+                // 生成题目
+                generateRandomProblems(count, addRatio);
+                
+                // 移除对话框
+                document.body.removeChild(dialogOverlay);
+            });
+            
+            // 取消按钮点击事件
+            cancelButton.addEventListener('click', function() {
+                document.body.removeChild(dialogOverlay);
+            });
+            
+            // 添加对话框到页面
+            dialogOverlay.appendChild(dialogBox);
+            document.body.appendChild(dialogOverlay);
+        }
+        
+        // 生成随机题目的主函数
+        function generateRandomProblems(totalCount, addRatio) {
+            // 计算有多少个模块可用
+            const availableModules = 11; // 总共有11个模块
+            
+            // 计算加法和减法的题目数量
+            const addCount = Math.round(totalCount * (addRatio / 100));
+            const subCount = totalCount - addCount;
+            
+            // 加法模块数量和减法模块数量
+            const addModules = 5; // 模块1, 2, 3, 5, 7是加法模块
+            const subModules = 5; // 模块4, 6, 8, 9, 10是减法模块
+            // 模块11是混合模块，可以生成加法或减法
+            
+            // 确保每个模块至少有一题
+            if (totalCount < availableModules) {
+                alert(`题目总数必须至少为${availableModules}，因为每个模块至少需要1题！`);
+                return;
+            }
+            
+            // 为每个模块分配初始题目数量（每个模块先分配1题）
+            const moduleCounts = Array(availableModules).fill(1);
+            let remainingAddCount = addCount - addModules; // 减去已分配给加法模块的题目
+            let remainingSubCount = subCount - subModules; // 减去已分配给减法模块的题目
+            
+            // 如果加法或减法题目数量不足以分配给所有相应模块，则调整比例
+            if (remainingAddCount < 0 || remainingSubCount < 0) {
+                // 重新计算更合理的加减法比例
+                const minAddCount = addModules; // 加法模块至少需要的题目数
+                const minSubCount = subModules; // 减法模块至少需要的题目数
+                const remainingForModule11 = totalCount - minAddCount - minSubCount;
+                
+                if (remainingForModule11 <= 0) {
+                    alert(`题目总数和加减法比例设置不合理！每个模块至少需要1题。`);
+                    return;
+                }
+                
+                // 调整加法比例，确保每个模块至少有1题
+                const adjustedAddCount = minAddCount + Math.round(remainingForModule11 * (addRatio / 100));
+                const adjustedSubCount = totalCount - adjustedAddCount;
+                
+                remainingAddCount = adjustedAddCount - addModules;
+                remainingSubCount = adjustedSubCount - subModules;
+            }
+            
+            // 分配剩余的加法题目到加法模块（模块1, 2, 3, 5, 7）
+            const addModuleIndices = [0, 1, 2, 4, 6]; // 加法模块对应的索引
+            while (remainingAddCount > 0) {
+                const randomIndex = Math.floor(Math.random() * addModuleIndices.length);
+                const moduleIndex = addModuleIndices[randomIndex];
+                moduleCounts[moduleIndex]++;
+                remainingAddCount--;
+            }
+            
+            // 分配剩余的减法题目到减法模块（模块4, 6, 8, 9, 10）
+            const subModuleIndices = [3, 5, 7, 8, 9]; // 减法模块对应的索引
+            while (remainingSubCount > 0) {
+                const randomIndex = Math.floor(Math.random() * subModuleIndices.length);
+                const moduleIndex = subModuleIndices[randomIndex];
+                moduleCounts[moduleIndex]++;
+                remainingSubCount--;
+            }
+            
+            // 模块11（混合模块）可以根据剩余的加减法比例分配
+            // 此时，模块11已经分配了1题（初始分配）
+            
+            // 生成每个模块的题目
+            let additionProblems = [];
+            let subtractionProblems = [];
+            
+            // 加法模块: 1, 2, 3, 5, 7
+            const result1 = generateModule1(moduleCounts[0]);
+            additionProblems = additionProblems.concat(extractProblems(result1));
+            
+            const result2 = generateModule2(moduleCounts[1]);
+            additionProblems = additionProblems.concat(extractProblems(result2));
+            
+            const result3 = generateModule3(moduleCounts[2]);
+            additionProblems = additionProblems.concat(extractProblems(result3));
+            
+            const result5 = generateModule5(moduleCounts[4]);
+            additionProblems = additionProblems.concat(extractProblems(result5));
+            
+            const result7 = generateModule7(moduleCounts[6]);
+            additionProblems = additionProblems.concat(extractProblems(result7));
+            
+            // 减法模块: 4, 6, 8, 9, 10
+            const result4 = generateModule4(moduleCounts[3]);
+            subtractionProblems = subtractionProblems.concat(extractProblems(result4));
+            
+            const result6 = generateModule6(moduleCounts[5]);
+            subtractionProblems = subtractionProblems.concat(extractProblems(result6));
+            
+            const result8 = generateModule8(moduleCounts[7]);
+            subtractionProblems = subtractionProblems.concat(extractProblems(result8));
+            
+            const result9 = generateModule9(moduleCounts[8]);
+            subtractionProblems = subtractionProblems.concat(extractProblems(result9));
+            
+            const result10 = generateModule10(moduleCounts[9]);
+            subtractionProblems = subtractionProblems.concat(extractProblems(result10));
+            
+            // 当前已生成的加法和减法题目数量
+            const currentAddCount = additionProblems.length;
+            const currentSubCount = subtractionProblems.length;
+            
+            // 计算模块11需要生成的加法和减法题目数量
+            // 总的加法题目数减去已生成的加法题目数
+            const module11AddCount = addCount - currentAddCount;
+            // 总的减法题目数减去已生成的减法题目数
+            const module11SubCount = subCount - currentSubCount;
+            
+            // 确保模块11生成题目总数等于分配给它的题目数
+            const totalModule11Count = moduleCounts[10];
+            
+            // 如果计算出的加减法题目总数与分配给模块11的题目数不一致，需要调整
+            if (module11AddCount + module11SubCount !== totalModule11Count) {
+                // 按比例调整
+                const module11AddRatio = module11AddCount / (module11AddCount + module11SubCount);
+                const adjustedModule11AddCount = Math.round(totalModule11Count * module11AddRatio);
+                const adjustedModule11SubCount = totalModule11Count - adjustedModule11AddCount;
+                
+                // 生成模块11的加法题目
+                if (adjustedModule11AddCount > 0) {
+                    const result11Add = generateModule11(adjustedModule11AddCount, 100); // 100% 加法
+                    additionProblems = additionProblems.concat(extractProblems(result11Add));
+                }
+                
+                // 生成模块11的减法题目
+                if (adjustedModule11SubCount > 0) {
+                    const result11Sub = generateModule11(adjustedModule11SubCount, 0); // 0% 加法，全部减法
+                    subtractionProblems = subtractionProblems.concat(extractProblems(result11Sub));
+                }
+            } else {
+                // 按计算出的数量生成
+                if (module11AddCount > 0) {
+                    const result11Add = generateModule11(module11AddCount, 100); // 100% 加法
+                    additionProblems = additionProblems.concat(extractProblems(result11Add));
+                }
+                
+                if (module11SubCount > 0) {
+                    const result11Sub = generateModule11(module11SubCount, 0); // 0% 加法，全部减法
+                    subtractionProblems = subtractionProblems.concat(extractProblems(result11Sub));
+                }
+            }
+            
+            // 打乱加法和减法题目顺序
+            shuffleArray(additionProblems);
+            shuffleArray(subtractionProblems);
+            
+            // 将所有问题合并
+            const allProblems = additionProblems.concat(subtractionProblems);
+            
+            // 最终打乱顺序
+            shuffleArray(allProblems);
+            
+            // 显示结果
+            const actualAddRatio = Math.round((additionProblems.length / allProblems.length) * 100);
+            document.getElementById('result').textContent = `随机生成了${allProblems.length}道题目（加法${additionProblems.length}道 ${actualAddRatio}%，减法${subtractionProblems.length}道 ${100-actualAddRatio}%）：\n` + allProblems.join('\n');
+        }
+        
+        // 提取题目（只提取含有等号的行）
+        function extractProblems(moduleResult) {
+            const lines = moduleResult.split('\n');
+            return lines.filter(line => line.includes('='));
+        }
+        
+        // 数组随机打乱方法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // 随机生成0-9之间的整数
+        function getRandomDigit() {
+            return Math.floor(Math.random() * 10);
+        }
+        
+        // 随机生成指定范围内的整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 模块一：相同数相加
+        function generateModule1(count) {
+            let result = '一、相同数相加（个位：5和5、6和6、7和7、8和8、9和9）：\n';
+            const digits = [5, 6, 7, 8, 9];
+            
+            for (let i = 0; i < count; i++) {
+                const digit = digits[Math.floor(Math.random() * digits.length)];
+                // 确保十位不为0，保证是两位数
+                let num1Tens = getRandomInt(1, 9);
+                let num2Tens = getRandomInt(1, 9);
+                
+                // 确保有进位：个位数之和大于等于10
+                // 对于相同数相加，只需要确保个位数*2大于等于10
+                if (digit * 2 < 10) {
+                    i--; // 不满足进位条件，重新生成
+                    continue;
+                }
+                
+                // 确保和不超过100
+                while (num1Tens * 10 + digit + num2Tens * 10 + digit >= 100) {
+                    num1Tens = getRandomInt(1, 9);
+                    num2Tens = getRandomInt(1, 9);
+                }
+                
+                const num1 = num1Tens * 10 + digit;
+                const num2 = num2Tens * 10 + digit;
+                
+                result += `${num1}+${num2}=\n`;
+            }
+            
+            return result;
+        }
+        
+        // 模块二：相邻数相加
+        function generateModule2(count) {
+            let result = '二、相邻数相加（个位：5和6、6和7、7和8、8和9）：\n';
+            const digitPairs = [[5, 6], [6, 7], [7, 8], [8, 9]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                // 确保十位不为0，保证是两位数
+                let num1Tens = getRandomInt(1, 9);
+                let num2Tens = getRandomInt(1, 9);
+                
+                // 确保有进位：个位数之和大于等于10
+                if (pair[0] + pair[1] < 10) {
+                    i--; // 不满足进位条件，重新生成
+                    continue;
+                }
+                
+                // 确保和不超过100
+                while (num1Tens * 10 + pair[0] + num2Tens * 10 + pair[1] >= 100) {
+                    num1Tens = getRandomInt(1, 9);
+                    num2Tens = getRandomInt(1, 9);
+                }
+                
+                // 随机决定哪个数使用pair[0]，哪个数使用pair[1]
+                if (Math.random() < 0.5) {
+                    const num1 = num1Tens * 10 + pair[0];
+                    const num2 = num2Tens * 10 + pair[1];
+                    result += `${num1}+${num2}=\n`;
+                } else {
+                    const num1 = num1Tens * 10 + pair[1];
+                    const num2 = num2Tens * 10 + pair[0];
+                    result += `${num1}+${num2}=\n`;
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块三：5+n
+        function generateModule3(count) {
+            let result = '三、5+n（个位：5和7、5和8、5和9）：\n';
+            const digitPairs = [[5, 7], [5, 8], [5, 9]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                // 确保十位不为0，保证是两位数
+                let num1Tens = getRandomInt(1, 9);
+                let num2Tens = getRandomInt(1, 9);
+                
+                // 确保有进位：个位数之和大于等于10
+                if (pair[0] + pair[1] < 10) {
+                    i--; // 不满足进位条件，重新生成
+                    continue;
+                }
+                
+                // 确保和不超过100
+                while (num1Tens * 10 + pair[0] + num2Tens * 10 + pair[1] >= 100) {
+                    num1Tens = getRandomInt(1, 9);
+                    num2Tens = getRandomInt(1, 9);
+                }
+                
+                // 随机决定哪个数使用pair[0]，哪个数使用pair[1]
+                if (Math.random() < 0.5) {
+                    const num1 = num1Tens * 10 + pair[0];
+                    const num2 = num2Tens * 10 + pair[1];
+                    result += `${num1}+${num2}=\n`;
+                } else {
+                    const num1 = num1Tens * 10 + pair[1];
+                    const num2 = num2Tens * 10 + pair[0];
+                    result += `${num1}+${num2}=\n`;
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块四：5+n的逆运算
+        function generateModule4(count) {
+            let result = '四、5+n的逆运算（个位：1和5、1和6、2和5、2和7、3和5、3和8、4和5、4和9）：\n';
+            // 根据示例，第一个数个位为1,2,3,4，第二个数个位为5,6,7,8,9
+            // 示例：41-15, 51-26, 62-15, 72-37, 53-25, 83-28, 94-35, 74-39
+            const digitPairs = [
+                [1, 5], // 对应 41-15
+                [1, 6], // 对应 51-26
+                [2, 5], // 对应 62-15
+                [2, 7], // 对应 72-37
+                [3, 5], // 对应 53-25
+                [3, 8], // 对应 83-28
+                [4, 5], // 对应 94-35
+                [4, 9]  // 对应 74-39
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                // 确保十位不为0，保证是两位数
+                const minuendTens = getRandomInt(1, 9);
+                const subtrahendTens = getRandomInt(1, 9);
+                
+                // 根据示例，被减数的个位是pair[0]，减数的个位是pair[1]
+                const minuend = minuendTens * 10 + pair[0]; // 被减数
+                const subtrahend = subtrahendTens * 10 + pair[1]; // 减数
+                
+                // 确保被减数大于减数且都是两位数
+                if (minuend > subtrahend && minuend < 100 && subtrahend < 100) {
+                    result += `${minuend}-${subtrahend}=\n`;
+                } else {
+                    i--; // 重新生成一组数
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块五：9+n
+        function generateModule5(count) {
+            let result = '五、9+n（个位：9和1、9和2、9和3、9和4、9和5、9和6、9和7、9和8）：\n';
+            const digitPairs = [[9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                // 确保十位不为0，保证是两位数
+                let num1Tens = getRandomInt(1, 9);
+                let num2Tens = getRandomInt(1, 9);
+                
+                // 确保有进位：个位数之和大于等于10
+                // 9+n必然有进位，所以不需要额外检查
+                
+                // 确保和不超过100
+                while ((num1Tens * 10 + pair[0] + num2Tens * 10 + pair[1]) >= 100) {
+                    num1Tens = getRandomInt(1, 9);
+                    num2Tens = getRandomInt(1, 9);
+                }
+                
+                // 随机决定哪个数使用pair[0]，哪个数使用pair[1]
+                if (Math.random() < 0.5) {
+                    const num1 = num1Tens * 10 + pair[0];
+                    const num2 = num2Tens * 10 + pair[1];
+                    result += `${num1}+${num2}=\n`;
+                } else {
+                    const num1 = num1Tens * 10 + pair[1];
+                    const num2 = num2Tens * 10 + pair[0];
+                    result += `${num1}+${num2}=\n`;
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块六：9+n的逆运算
+        function generateModule6(count) {
+            let result = '六、9+n的逆运算（个位：0和1、0和9、1和2、1和9、2和3、2和9、3和4、3和9、4和5、4和9、5和6、5和9、6和7、6和9、7和8、7和9、8和9）：\n';
+            // 根据示例：40-21、30-19、51-32、71-29、62-13、82-39、53-24、83-49、75-26、95-49、46-17、86-59、97-28、67-29、78-49
+            const subtractPairs = [
+                [0, 1], // 40-21
+                [0, 9], // 30-19
+                [1, 2], // 51-32
+                [1, 9], // 71-29
+                [2, 3], // 62-13
+                [2, 9], // 82-39
+                [3, 4], // 53-24
+                [3, 9], // 83-49
+                [4, 5], // 74-45
+                [4, 9], // 94-59
+                [5, 6], // 75-26
+                [5, 9], // 95-49
+                [6, 7], // 46-17
+                [6, 9], // 86-59
+                [7, 8], // 97-28
+                [7, 9], // 67-29
+                [8, 9]  // 78-49
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = subtractPairs[Math.floor(Math.random() * subtractPairs.length)];
+                // 确保十位不为0，保证是两位数
+                const minuendTens = getRandomInt(1, 9);
+                const subtrahendTens = getRandomInt(1, 9);
+                
+                // 根据示例，被减数的个位是pair[0]，减数的个位是pair[1]
+                const minuend = minuendTens * 10 + pair[0]; // 被减数
+                const subtrahend = subtrahendTens * 10 + pair[1]; // 减数
+                
+                // 确保被减数大于减数且都是两位数
+                if (minuend > subtrahend && minuend < 100 && subtrahend < 100) {
+                    result += `${minuend}-${subtrahend}=\n`;
+                } else {
+                    i--; // 重新生成一组数
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块七：8+n
+        function generateModule7(count) {
+            let result = '七、8+n（个位：8和2、8和3、8和4、8和5、8和6、8和7）：\n';
+            const digitPairs = [[8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                // 确保十位不为0，保证是两位数
+                let num1Tens = getRandomInt(1, 9);
+                let num2Tens = getRandomInt(1, 9);
+                
+                // 确保有进位：个位数之和大于等于10
+                if (pair[0] + pair[1] < 10) {
+                    i--; // 不满足进位条件，重新生成
+                    continue;
+                }
+                
+                // 确保和不超过100
+                while ((num1Tens * 10 + pair[0] + num2Tens * 10 + pair[1]) >= 100) {
+                    num1Tens = getRandomInt(1, 9);
+                    num2Tens = getRandomInt(1, 9);
+                }
+                
+                // 随机决定哪个数使用pair[0]，哪个数使用pair[1]
+                if (Math.random() < 0.5) {
+                    const num1 = num1Tens * 10 + pair[0];
+                    const num2 = num2Tens * 10 + pair[1];
+                    result += `${num1}+${num2}=\n`;
+                } else {
+                    const num1 = num1Tens * 10 + pair[1];
+                    const num2 = num2Tens * 10 + pair[0];
+                    result += `${num1}+${num2}=\n`;
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块八：8+n的逆运算
+        function generateModule8(count) {
+            let result = '八、8+n的逆运算（个位：0和2、0和8、1和3、1和8、2和4、2和8、3和5、3和8、4和6、4和8、5和7、5和8、6和8）：\n';
+            // 根据示例：50-12、40-18、61-23、71-38、52-14、92-38、63-25、93-48、54-26、84-38、75-27、85-28、96-58
+            const subtractPairs = [
+                [0, 2], // 50-12
+                [0, 8], // 40-18
+                [1, 3], // 61-23
+                [1, 8], // 71-38
+                [2, 4], // 52-14
+                [2, 8], // 92-38
+                [3, 5], // 63-25
+                [3, 8], // 93-48
+                [4, 6], // 54-26
+                [4, 8], // 84-38
+                [5, 7], // 75-27
+                [5, 8], // 85-28
+                [6, 8]  // 96-58
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = subtractPairs[Math.floor(Math.random() * subtractPairs.length)];
+                // 确保十位不为0，保证是两位数
+                const minuendTens = getRandomInt(1, 9);
+                const subtrahendTens = getRandomInt(1, 9);
+                
+                // 根据示例，被减数的个位是pair[0]，减数的个位是pair[1]
+                const minuend = minuendTens * 10 + pair[0]; // 被减数
+                const subtrahend = subtrahendTens * 10 + pair[1]; // 减数
+                
+                // 确保被减数大于减数且都是两位数
+                if (minuend > subtrahend && minuend < 100 && subtrahend < 100) {
+                    result += `${minuend}-${subtrahend}=\n`;
+                } else {
+                    i--; // 重新生成一组数
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块九：相同数相加逆运算
+        function generateModule9(count) {
+            let result = '九、相同数相加逆运算（个位：0和5、2和6、4和7）：\n';
+            const digitPairs = [[0, 5], [2, 6], [4, 7]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = digitPairs[Math.floor(Math.random() * digitPairs.length)];
+                
+                // 确保十位不为0，生成两位数
+                const minuendTens = getRandomInt(1, 9);
+                const subtrahendTens = getRandomInt(1, 9);
+                
+                // 根据题目要求: 被减数个位是pair[0]，减数个位是pair[1]
+                const minuend = minuendTens * 10 + pair[0]; // 被减数
+                const subtrahend = subtrahendTens * 10 + pair[1]; // 减数
+                
+                // 确保被减数大于减数
+                if (minuend > subtrahend) {
+                    result += `${minuend}-${subtrahend}=\n`;
+                } else {
+                    i--; // 重新生成一组数
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块十：相邻数相加的逆运算
+        function generateModule10(count) {
+            let result = '十、相邻数相加的逆运算（个位：3和6、3和7）：\n';
+            const subtractPairs = [[3, 6], [3, 7]];
+            
+            for (let i = 0; i < count; i++) {
+                const pair = subtractPairs[Math.floor(Math.random() * subtractPairs.length)];
+                const tens1 = getRandomInt(1, 9); // 确保十位不为0
+                const tens2 = getRandomInt(1, 9); // 确保十位不为0
+                
+                // 这里确保符合相邻数相加的逆运算逻辑
+                const minuend = (tens1 * 10) + pair[0];
+                const subtrahend = (tens2 * 10) + pair[1];
+                
+                // 确保：1.被减数大于减数 2.结果小于100 3.都是两位数 4.有退位(被减数的个位小于减数的个位)
+                if (minuend > subtrahend && minuend < 100 && subtrahend < 100 && minuend >= 10 && subtrahend >= 10 && minuend % 10 < subtrahend % 10) {
+                    result += `${minuend}-${subtrahend}=\n`;
+                } else {
+                    i--; // 重新生成一组数
+                }
+            }
+            
+            return result;
+        }
+        
+        // 模块十一：4和7组合（加减混合）
+        function generateModule11(count, ratio) {
+            let result = '十一、4和7组合（加减混合）：\n';
+            // 用于生成加法题
+            const addPairs = [[4, 7]];
+            // 用于生成减法题
+            const subtractPairs = [[1, 4], [1, 7]];
+            
+            for (let i = 0; i < count; i++) {
+                // 根据比例决定生成加法题还是减法题
+                if (Math.random() * 100 < ratio) {
+                    // 生成加法题
+                    const pair = addPairs[Math.floor(Math.random() * addPairs.length)];
+                    // 确保十位不为0，保证是两位数
+                    let num1Tens = getRandomInt(1, 9);
+                    let num2Tens = getRandomInt(1, 9);
+                    
+                    // 确保有进位：个位数之和大于等于10
+                    if (pair[0] + pair[1] < 10) {
+                        i--; // 不满足进位条件，重新生成
+                        continue;
+                    }
+                    
+                    // 确保和不超过100
+                    while (num1Tens * 10 + pair[0] + num2Tens * 10 + pair[1] >= 100) {
+                        num1Tens = getRandomInt(1, 9);
+                        num2Tens = getRandomInt(1, 9);
+                    }
+                    
+                    // 随机决定哪个数使用pair[0]，哪个数使用pair[1]
+                    if (Math.random() < 0.5) {
+                        const num1 = num1Tens * 10 + pair[0]; // 4放前面
+                        const num2 = num2Tens * 10 + pair[1]; // 7放后面
+                        result += `${num1}+${num2}=\n`;
+                    } else {
+                        const num1 = num1Tens * 10 + pair[1]; // 7放前面
+                        const num2 = num2Tens * 10 + pair[0]; // 4放后面
+                        result += `${num1}+${num2}=\n`;
+                    }
+                } else {
+                    // 生成减法题
+                    const pair = subtractPairs[Math.floor(Math.random() * subtractPairs.length)];
+                    const minuendTens = getRandomInt(1, 9);
+                    const subtrahendTens = getRandomInt(1, 9);
+                    
+                    // 根据题目要求: 被减数个位是pair[0]，减数个位是pair[1]
+                    const minuend = minuendTens * 10 + pair[0]; // 被减数
+                    const subtrahend = subtrahendTens * 10 + pair[1]; // 减数
+                    
+                    // 确保被减数大于减数且都是两位数
+                    if (minuend > subtrahend && minuend < 100 && subtrahend < 100) {
+                        result += `${minuend}-${subtrahend}=\n`;
+                    } else {
+                        i--; // 重新生成一组数
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        // 添加一键复制题目的功能
+        document.getElementById('copyShuffled').addEventListener('click', function() {
+            // 获取当前生成的所有题目
+            const resultText = document.getElementById('result').textContent;
+            if (!resultText.trim()) {
+                alert('请先生成题目！');
+                return;
+            }
+            
+            // 分割每一行题目
+            const lines = resultText.split('\n');
+            const problems = [];
+            
+            // 提取所有算式
+            for (let line of lines) {
+                // 如果行中包含等号，说明是算式
+                if (line.includes('=')) {
+                    problems.push(line);
+                }
+            }
+            
+            // 随机打乱所有题目
+            for (let i = problems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [problems[i], problems[j]] = [problems[j], problems[i]];
+            }
+            
+            // 组合成新的字符串
+            const shuffledText = problems.join('\n');
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(shuffledText)
+                .then(() => {
+                    alert('题目已复制到剪贴板！');
+                })
+                .catch(err => {
+                    console.error('复制失败: ', err);
+                    alert('复制失败，请手动复制。');
+                    
+                    // 创建一个临时文本区域
+                    const textArea = document.createElement('textarea');
+                    textArea.value = shuffledText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        alert('题目已复制到剪贴板！');
+                    } catch (err) {
+                        alert('复制失败，请手动复制。');
+                    }
+                    
+                    document.body.removeChild(textArea);
+            });
+        });
+
+        // 添加打印功能
+        document.getElementById('printButton').addEventListener('click', function() {
+            const resultText = document.getElementById('result').textContent;
+            if (!resultText.trim()) {
+                alert('请先生成题目！');
+                return;
+            }
+            
+            // 提取题目
+            const lines = resultText.split('\n');
+            const problems = [];
+            
+            // 只取算式
+            for (let line of lines) {
+                if (line.includes('=')) {
+                    problems.push(line);
+                }
+            }
+            
+            // 获取iframe元素
+            const printFrame = document.getElementById('printFrame');
+            const frameDoc = printFrame.contentDocument || printFrame.contentWindow.document;
+            
+            // 清空iframe内容
+            frameDoc.open();
+            
+            // 每页显示的题目数量和列数
+            const problemsPerPage = 24;
+            const columns = 4;
+            const rows = 6;
+            
+            // 计算需要的页数
+            const totalPages = Math.ceil(problems.length / problemsPerPage);
+            
+            // 创建打印页面HTML
+            let printHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>打印题目</title>
+                    <style>
+                        @page {
+                            size: A4 landscape;
+                            margin: 0.8cm;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            font-family: "Calibri", "Arial", sans-serif;
+                        }
+                        .print-container {
+                            width: 100%;
+                        }
+                        .print-page {
+                            page-break-after: always;
+                            margin-bottom: 0;
+                            padding: 0;
+                        }
+                        .print-page:last-child {
+                            page-break-after: avoid;
+                        }
+                        .print-header {
+                            text-align: center;
+                            font-size: 24pt;
+                            margin-bottom: 40px;
+                            font-weight: bold;
+                        }
+                        .print-date {
+                            margin-bottom: 6px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            border: 1px solid #aaa;
+                        }
+                        td {
+                            width: 25%;
+                            padding: 14px 6px;
+                            text-align: center;
+                            font-size: 24pt;
+                            vertical-align: middle;
+                            line-height: 1.5;
+                            border: none;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+            `;
+            
+            // 获取当前日期并格式化为yyyy-MM-dd
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+            
+            // 为每一页创建内容
+            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                printHTML += '<div class="print-page">';
+                
+                // <div style="margin-top: 15px;">${getRandomEncouragement()}</div>
+                // 添加页眉
+                printHTML += `
+                    <div class="print-header">
+                        <div class="print-date">日期：${dateString}</div>
+                    </div>
+                `;
+                
+                // 计算当前页的题目范围
+                const startIndex = pageIndex * problemsPerPage;
+                const endIndex = Math.min((pageIndex + 1) * problemsPerPage, problems.length);
+                const pageProblems = problems.slice(startIndex, endIndex);
+                
+                // 如果最后一页题目不足，补充空白题目
+                while (pageProblems.length < problemsPerPage) {
+                    pageProblems.push("&nbsp;");
+                }
+                
+                // 创建表格
+                printHTML += '<table>';
+                for (let row = 0; row < rows; row++) {
+                    printHTML += '<tr>';
+                    for (let col = 0; col < columns; col++) {
+                        const index = row * columns + col;
+                        printHTML += `<td>${pageProblems[index]}</td>`;
+                    }
+                    printHTML += '</tr>';
+                }
+                printHTML += '</table>';
+                
+                printHTML += '</div>'; // 关闭print-page
+            }
+            
+            // 关闭HTML
+            printHTML += `
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // 写入iframe
+            frameDoc.write(printHTML);
+            frameDoc.close();
+            
+            // 等待iframe加载完成后打印
+            printFrame.onload = function() {
+                setTimeout(function() {
+                    try {
+                        printFrame.contentWindow.focus();
+                        printFrame.contentWindow.print();
+                    } catch (e) {
+                        console.error('打印失败:', e);
+                        alert('打印失败，请重试。');
+                    }
+                }, 500);
+            };
+        });
+        
+        // 主题监听
+        function applyTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark' || 
+                (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        
+        // 初始化主题
+        applyTheme();
+        
+        // 监听 storage 变化（跨标签页同步）
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'theme') {
+                applyTheme();
+            }
+        });
+        
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+        
+        // 定期检查主题变化（用于 iframe 内部同步）
+        setInterval(applyTheme, 500);
+    </script>
+</body>
+</html> 

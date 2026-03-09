@@ -34,6 +34,11 @@ const router = createRouter({
       component: () => import('../views/MathThreeDigitView.vue')
     },
     {
+      path: '/math-within-100',
+      name: 'math-within-100',
+      component: () => import('../views/MathWithin100View.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
