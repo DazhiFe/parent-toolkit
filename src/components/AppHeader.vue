@@ -23,7 +23,12 @@ const isActiveRoute = (path) => {
   <header class="bg-white dark:bg-gray-800 shadow-sm fixed top-0 left-0 right-0 z-50">
     <nav class="w-full pl-4 pr-2 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-8">
-        <RouterLink to="/" class="text-xl font-bold text-primary-600 dark:text-primary-400">家长工具箱</RouterLink>
+        <RouterLink to="/" class="text-xl font-bold text-primary-600 dark:text-primary-400 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          家长工具箱
+        </RouterLink>
         <div class="hidden md:flex space-x-6">
           <RouterLink to="/" :class="isActiveRoute('/') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">首页</RouterLink>
           <RouterLink to="/study-assistant" :class="isActiveRoute('/study-assistant') ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'" class="transition-colors">AI学习助手</RouterLink>

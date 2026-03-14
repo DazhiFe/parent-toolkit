@@ -44,9 +44,8 @@
       <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
         <p class="mb-4">我们欢迎您的反馈和建议，帮助我们不断改进和完善家长工具箱。</p>
         <ul class="space-y-2">
-          <li>邮箱：contact@parent-toolkit.com</li>
-          <li>微信：ParentToolbox</li>
-          <li>QQ群：123456789</li>
+          <li>邮箱：2238662003@qq.com</li>
+          <li>微信：zzw238</li>
         </ul>
       </div>
     </div>

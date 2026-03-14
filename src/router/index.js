@@ -39,6 +39,11 @@ const router = createRouter({
       component: () => import('../views/MathWithin100View.vue')
     },
     {
+      path: '/ancient-poetry',
+      name: 'ancient-poetry',
+      component: () => import('../views/AncientPoetryView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')

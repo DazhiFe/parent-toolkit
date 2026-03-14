@@ -42,7 +42,7 @@ watch(() => route.path, (newPath) => {
   if (newPath === '/ai-tools') {
     activeNav.value = 'ai-chat'
   } else if (newPath === '/study-assistant') {
-    activeNav.value = 'chinese'
+    activeNav.value = 'math'
   } else if (newPath === '/') {
     activeNav.value = 'websites'
   }

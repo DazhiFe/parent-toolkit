@@ -5,31 +5,10 @@ import SideNav from '../components/SideNav.vue'
 const chineseTools = [
   {
     id: 1,
-    name: '古诗词学习',
-    description: '小学必背古诗词75首，带拼音、注释和赏析',
-    url: '#',
+    name: '古诗词讲解速查',
+    description: '输入古诗名称，AI智能讲解译文、赏析、重点字词',
+    url: '/ancient-poetry',
     color: 'red'
-  },
-  {
-    id: 2,
-    name: '作文素材库',
-    description: '优秀作文范文、写作技巧、好词好句积累',
-    url: '#',
-    color: 'orange'
-  },
-  {
-    id: 3,
-    name: '字词练习',
-    description: '生字词听写、组词造句、成语积累',
-    url: '#',
-    color: 'pink'
-  },
-  {
-    id: 4,
-    name: '阅读理解',
-    description: '小学各年级阅读理解训练，提升阅读能力',
-    url: '#',
-    color: 'rose'
   }
 ]
 
