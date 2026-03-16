@@ -126,11 +126,17 @@ const searchPoem = () => {
 
   // 判断是否为散文/赋/文言文（综合多种因素）
   const isProse = (() => {
+    // 0. 诗歌标题特征（明确是诗歌的）
+    const poetryIndicators = ['诗', '词', '曲', '歌', '行', '吟', '咏', '谣', '辞', '九歌', '离骚']
+    const isPoetryByTitle = poetryIndicators.some(indicator => poem.title.includes(indicator))
+    // 如果是明确的诗歌标题，直接返回 false
+    if (isPoetryByTitle) return false
+    
     // 1. 标题关键词判断（文体特征）
-    const proseKeywords = ['赋', '序', '记', '说', '论', '辞', '表', '铭', '谏', '传', '列传', '世家', '本纪', '书', '志']
+    const proseKeywords = ['赋', '序', '记', '说', '论', '表', '铭', '谏', '传', '列传', '世家', '本纪', '书', '志']
     const hasProseKeyword = proseKeywords.some(keyword => poem.title.includes(keyword))
     
-    // 2. 作者/出处判断（经典著作或史书）
+    // 2. 作者/出处判断（经典著作或史书，排除诗经、楚辞等诗歌总集）
     const classicAuthors = ['论语', '孟子', '礼记', '孔子', '孟子', '司马迁', '史记', '左传', '战国策', '国语']
     const isClassic = classicAuthors.some(author => 
       poem.author.includes(author) || poem.title.includes(author)
@@ -141,8 +147,13 @@ const searchPoem = () => {
     const dialoguePatterns = ['子曰', '孟子曰', '曾子曰', '子贡曰', '子路曰', '谓之', '曰：']
     const hasDialogue = dialoguePatterns.some(pattern => contentText.includes(pattern))
     
-    // 4. 先秦散文（朝代+内容长度）
-    const isPreQinProse = poem.dynasty === '先秦' && poem.content.length > 3
+    // 4. 先秦散文（朝代+内容长度），但要排除诗经、楚辞等诗歌
+    // 诗经、楚辞中的诗歌虽然也是先秦，但属于诗歌而非散文
+    const isPreQinPoetry = poem.dynasty === '先秦' && 
+                           (poem.author.includes('诗经') || poem.author.includes('屈原') || poem.title.includes('九歌'))
+    const isPreQinProse = poem.dynasty === '先秦' && 
+                          poem.content.length > 3 && 
+                          !isPreQinPoetry
     
     // 5. 史书体例（汉代+长文+特定作者）
     const isHistoryProse = poem.dynasty === '汉' && 
