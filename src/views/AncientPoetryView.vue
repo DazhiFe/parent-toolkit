@@ -132,6 +132,22 @@ const searchPoem = () => {
     // 如果是明确的诗歌标题，直接返回 false
     if (isPoetryByTitle) return false
     
+    // 0.1 词牌名判断（标题中包含·符号，通常是词）
+    if (poem.title.includes('·')) return false
+    
+    // 0.2 内容格式判断（诗歌通常是整齐的句式，每行字数相近）
+    const contentLines = poem.content
+    if (contentLines.length >= 2) {
+      // 计算每行的字数（去除标点）
+      const lineLengths = contentLines.map(line => line.replace(/[，。！？；：、""''（）]/g, '').length)
+      const avgLength = lineLengths.reduce((a, b) => a + b, 0) / lineLengths.length
+      // 如果每行字数相近（标准差较小），且平均在5-7字或7字左右，判定为诗歌
+      const variance = lineLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / lineLengths.length
+      const stdDev = Math.sqrt(variance)
+      // 如果标准差小于2，且平均字数在4-10之间，认为是诗歌
+      if (stdDev < 2 && avgLength >= 4 && avgLength <= 10) return false
+    }
+    
     // 1. 标题关键词判断（文体特征）
     const proseKeywords = ['赋', '序', '记', '说', '论', '表', '铭', '谏', '传', '列传', '世家', '本纪', '书', '志']
     const hasProseKeyword = proseKeywords.some(keyword => poem.title.includes(keyword))
