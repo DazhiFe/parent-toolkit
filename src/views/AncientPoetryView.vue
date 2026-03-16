@@ -141,11 +141,11 @@ const searchPoem = () => {
       // 计算每行的字数（去除标点）
       const lineLengths = contentLines.map(line => line.replace(/[，。！？；：、""''（）]/g, '').length)
       const avgLength = lineLengths.reduce((a, b) => a + b, 0) / lineLengths.length
-      // 如果每行字数相近（标准差较小），且平均在5-7字或7字左右，判定为诗歌
+      // 如果每行字数相近（标准差较小），判定为诗歌
       const variance = lineLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / lineLengths.length
       const stdDev = Math.sqrt(variance)
-      // 如果标准差小于2，且平均字数在4-10之间，认为是诗歌
-      if (stdDev < 2 && avgLength >= 4 && avgLength <= 10) return false
+      // 如果标准差小于2，且平均字数在4-16之间（五言诗约10字，七言诗约14字），认为是诗歌
+      if (stdDev < 2 && avgLength >= 4 && avgLength <= 16) return false
     }
     
     // 1. 标题关键词判断（文体特征）
