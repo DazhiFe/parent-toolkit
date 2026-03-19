@@ -15,13 +15,20 @@ const chineseTools = [
 const mathTools = [
   {
     id: 1,
+    name: '20以内题目生成器',
+    description: '生成20以内的加减法练习题',
+    url: '/math-within-20',
+    color: 'cyan'
+  },
+  {
+    id: 2,
     name: '百以内题目生成器',
     description: '生成100以内的加减法练习题',
     url: '/math-within-100',
     color: 'blue'
   },
   {
-    id: 2,
+    id: 3,
     name: '三位数加减题目生成器',
     description: '生成三位数的加减法练习题',
     url: '/math-three-digit',
