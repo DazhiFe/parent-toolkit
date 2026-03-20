@@ -13,8 +13,11 @@
   "dependencies": {
     "@vueuse/core": "^10.3.0",
     "axios": "^1.4.0",
+    "jspdf": "^4.2.1",
+    "pdfjs-dist": "^5.5.207",
     "pinia": "^2.1.6",
     "pinyin-pro": "^3.28.0",
+    "pptxgenjs": "^4.0.1",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },
