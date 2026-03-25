@@ -5,11 +5,21 @@ import AppFooter from './components/AppFooter.vue'
 import { onMounted } from 'vue'
 import './composables/useTheme.js'
 
+const isNightTime = () => {
+  const hour = new Date().getHours()
+  return hour >= 18 || hour < 6
+}
+
 onMounted(() => {
-  // 确保主题在应用加载时正确应用
   const savedTheme = localStorage.getItem('theme')
-  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (savedTheme === 'dark') {
     document.documentElement.classList.add('dark')
+  } else if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark')
+  } else {
+    if (isNightTime() || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark')
+    }
   }
 })
 </script>
