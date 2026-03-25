@@ -8,7 +8,8 @@ const homeNavItems = ref([
   { id: 'websites', title: '常用网站', icon: 'globe' },
   { id: 'tools', title: '常用工具', icon: 'tools' },
   { id: 'image-tools', title: '图片格式工具', icon: 'image-tools' },
-  { id: 'pdf-tools', title: 'PDF格式工具', icon: 'pdf-tools' }
+  { id: 'pdf-tools', title: 'PDF格式工具', icon: 'pdf-tools' },
+  { id: 'office-tools', title: 'Office格式工具', icon: 'office-tools' }
 ])
 
 const aiToolsNavItems = ref([
@@ -208,6 +209,9 @@ onUnmounted(() => {
               <svg v-else-if="item.icon === 'pdf-tools'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-6 4h4" />
+              </svg>
+              <svg v-else-if="item.icon === 'office-tools'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               {{ item.title }}
             </button>

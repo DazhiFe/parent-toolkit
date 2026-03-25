@@ -59,6 +59,21 @@ const router = createRouter({
       component: () => import('../views/PdfToPptView.vue')
     },
     {
+      path: '/word-to-pdf',
+      name: 'word-to-pdf',
+      component: () => import('../views/WordToPdfView.vue')
+    },
+    {
+      path: '/pdf-to-word',
+      name: 'pdf-to-word',
+      component: () => import('../views/PdfToWordView.vue')
+    },
+    {
+      path: '/image-compress',
+      name: 'image-compress',
+      component: () => import('../views/ImageCompressView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')

@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import SideNav from '../components/SideNav.vue'
 
-// 工具数据
 const tools = [
   {
     id: 1,
@@ -166,16 +165,13 @@ const tools = [
   }
 ]
 
-// 获取所有分类
 const categories = computed(() => {
   const allCategories = tools.map(tool => tool.category)
   return ['全部', ...new Set(allCategories)]
 })
 
-// 当前选中的分类
 const selectedCategory = ref('全部')
 
-// 过滤后的工具列表
 const filteredTools = computed(() => {
   if (selectedCategory.value === '全部') {
     return tools
@@ -186,66 +182,71 @@ const filteredTools = computed(() => {
 
 <template>
   <div class="flex">
-    <!-- 左侧导航 -->
     <SideNav />
     
-    <!-- 右侧内容区 -->
     <div class="flex-1 lg:ml-64 px-4 py-8">
-      <!-- 页面标题 -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold dark:text-white">AI工具箱</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">探索各种AI工具，助力孩子学习和成长</p>
       </div>
       
-      <!-- AI对话助手 -->
       <section id="ai-chat" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI对话助手</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div class="text-blue-600 dark:text-blue-400 font-bold text-lg">豆包</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">豆包</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">字节跳动出品，支持多领域知识问答，帮助孩子解决学习和生活中的问题</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">字节跳动出品，支持多领域知识问答</p>
             <a href="https://www.doubao.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div class="text-green-600 dark:text-green-400 font-bold text-lg">千问</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">千问</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">阿里云出品，强大的语言理解与生成能力，助力孩子学习成长</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">阿里云出品，强大的语言理解与生成能力</p>
             <a href="https://qianwen.aliyun.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div class="text-purple-600 dark:text-purple-400 font-bold text-lg">智谱清言</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">智谱清言</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">智谱AI出品，提供高质量对话体验，帮助孩子探索知识世界</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">智谱AI出品，提供高质量对话体验</p>
             <a href="https://chatglm.cn" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <div class="text-red-600 dark:text-red-400 font-bold text-lg">文心一言</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">文心一言</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">百度出品，强大的知识理解与生成能力，助力孩子学习成长</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">百度出品，强大的知识理解与生成能力</p>
             <a href="https://yiyan.baidu.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
         </div>
       </section>
       
-      <!-- AI图形生成 -->
       <section id="ai-image" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI图形生成</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-              <div class="text-indigo-600 dark:text-indigo-400 font-bold text-lg">AI绘画生成</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI绘画生成</h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">输入文字描述，AI自动生成精美图片</p>
@@ -254,46 +255,53 @@ const filteredTools = computed(() => {
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <div class="text-yellow-600 dark:text-yellow-400 font-bold text-lg">AI头像生成</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI头像生成</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">创建个性化卡通或写实头像，培养艺术审美</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">创建个性化卡通或写实头像</p>
             <a href="#" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
         </div>
       </section>
       
-      <!-- AI视频生成 -->
       <section id="ai-video" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI视频生成</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-              <div class="text-pink-600 dark:text-pink-400 font-bold text-lg">AI视频制作</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-pink-600 dark:text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI视频制作</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">通过简单的文字或图片创建有趣的短视频</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">通过文字或图片创建有趣的短视频</p>
             <a href="#" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-              <div class="text-teal-600 dark:text-teal-400 font-bold text-lg">AI动画生成</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI动画生成</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">创建个性化动画角色和简单动画故事</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">创建个性化动画角色和动画故事</p>
             <a href="#" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
         </div>
       </section>
       
-      <!-- AI学习资源 -->
       <section id="ai-learning" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI学习资源</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-              <div class="text-cyan-600 dark:text-cyan-400 font-bold text-lg">AI作业辅导</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-cyan-600 dark:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI作业辅导</h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">智能解答作业问题，提供详细解题思路</p>
@@ -302,7 +310,9 @@ const filteredTools = computed(() => {
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <div class="text-orange-600 dark:text-orange-400 font-bold text-lg">AI知识图谱</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI知识图谱</h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">可视化知识结构，帮助理解复杂概念</p>
@@ -311,13 +321,14 @@ const filteredTools = computed(() => {
         </div>
       </section>
       
-      <!-- AI音频处理 -->
       <section id="ai-audio" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI音频处理</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
-              <div class="text-rose-600 dark:text-rose-400 font-bold text-lg">AI音乐创作</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI音乐创作</h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">根据喜好生成个性化音乐，培养音乐素养</p>
@@ -326,7 +337,9 @@ const filteredTools = computed(() => {
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-              <div class="text-emerald-600 dark:text-emerald-400 font-bold text-lg">AI语音变声</div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0v4m0 0H8m4 0v4m0 0H8" />
+              </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2 dark:text-white">AI语音变声</h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">有趣的语音处理工具，用于创意表达</p>
@@ -337,3 +350,15 @@ const filteredTools = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.tool-card {
+  @apply shadow-md;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+}
+</style>
