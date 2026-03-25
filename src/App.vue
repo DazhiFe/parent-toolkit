@@ -11,14 +11,16 @@ const isNightTime = () => {
 }
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme === 'dark') {
+  const userSetTheme = localStorage.getItem('userTheme')
+  if (userSetTheme === 'dark') {
     document.documentElement.classList.add('dark')
-  } else if (savedTheme === 'light') {
+  } else if (userSetTheme === 'light') {
     document.documentElement.classList.remove('dark')
   } else {
-    if (isNightTime() || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (isNightTime()) {
       document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
   }
 })
