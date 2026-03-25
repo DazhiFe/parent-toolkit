@@ -8,6 +8,7 @@ const pageSize = ref('a4')
 const orientation = ref('portrait')
 const imageQuality = ref(0.92)
 const draggedIndex = ref(null)
+const dropIndex = ref(null)
 const previewImage = ref(null)
 
 const pageSizes = [
@@ -51,11 +52,19 @@ const clearAll = () => {
 const handleDragStart = (e, index) => {
   draggedIndex.value = index
   e.dataTransfer.effectAllowed = 'move'
+  e.target.classList.add('dragging')
 }
 
 const handleDragOver = (e, index) => {
   e.preventDefault()
   e.dataTransfer.dropEffect = 'move'
+  if (draggedIndex.value !== index) {
+    dropIndex.value = index
+  }
+}
+
+const handleDragLeave = (e) => {
+  dropIndex.value = null
 }
 
 const handleDrop = (e, targetIndex) => {
@@ -68,10 +77,13 @@ const handleDrop = (e, targetIndex) => {
     images.value = items
   }
   draggedIndex.value = null
+  dropIndex.value = null
 }
 
-const handleDragEnd = () => {
+const handleDragEnd = (e) => {
   draggedIndex.value = null
+  dropIndex.value = null
+  e.target.classList.remove('dragging')
 }
 
 const openPreview = (img) => {
@@ -211,10 +223,15 @@ const convertToPdf = async () => {
                  draggable="true"
                  @dragstart="handleDragStart($event, index)"
                  @dragover="handleDragOver($event, index)"
+                 @dragleave="handleDragLeave"
                  @drop="handleDrop($event, index)"
                  @dragend="handleDragEnd"
                  @click="openPreview(img)"
-                 class="relative group cursor-move">
+                 :class="[
+                   'image-item relative group cursor-move transition-all duration-200',
+                   draggedIndex === index ? 'opacity-50 scale-95' : '',
+                   dropIndex === index ? 'ring-2 ring-primary-500 ring-offset-2' : ''
+                 ]">
               <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border-2 border-transparent hover:border-primary-500 transition-colors">
                 <img :src="img.data" :alt="img.name"
                      class="w-full h-full object-cover pointer-events-none">
@@ -269,4 +286,70 @@ const convertToPdf = async () => {
 </template>
 
 <style scoped>
+.image-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.4);
+  position: relative;
+}
+
+.image-item.dragging {
+  opacity: 0.4;
+  transform: scale(0.9) rotate(2deg);
+  box-shadow: 0 20px 25px -5px rgba(236, 72, 153, 0.3), 0 10px 10px -5px rgba(236, 72, 153, 0.1);
+  z-index: 100;
+  animation: shake 0.3s ease-in-out infinite;
+}
+
+.image-item.drop-target {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.5);
+  z-index: 50;
+}
+
+.image-item.drop-target::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%);
+  border-radius: 8px;
+  opacity: 0.5;
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+.image-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.2);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  50% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  75% {
+    transform: translateX(-2px) rotate(1deg);
+  }
+}
+
+.dragging .aspect-square {
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.6);
+}
 </style>
