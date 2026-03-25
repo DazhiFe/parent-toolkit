@@ -6,32 +6,31 @@ const isNightTime = () => {
 }
 
 const getInitialTheme = () => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
-    return savedTheme
+  const userSetTheme = localStorage.getItem('userTheme')
+  if (userSetTheme) {
+    return userSetTheme
   }
 
   if (isNightTime()) {
     return 'dark'
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'light'
 }
 
 const theme = ref(getInitialTheme())
 
 watchEffect(() => {
   document.documentElement.classList.toggle('dark', theme.value === 'dark')
-  localStorage.setItem('theme', theme.value)
 })
 
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
+  localStorage.setItem('userTheme', theme.value)
 }
 
 const checkAndAutoSwitchTheme = () => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
+  if (localStorage.getItem('userTheme')) {
     return
   }
   
@@ -43,12 +42,8 @@ const checkAndAutoSwitchTheme = () => {
   }
 }
 
-setInterval(checkAndAutoSwitchTheme, 60000)
+checkAndAutoSwitchTheme()
 
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (!localStorage.getItem('theme')) {
-    theme.value = e.matches ? 'dark' : 'light'
-  }
-})
+setInterval(checkAndAutoSwitchTheme, 60000)
 
 export { theme, toggleTheme }
