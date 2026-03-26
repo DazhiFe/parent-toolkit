@@ -177,6 +177,17 @@ import SideNav from '../components/SideNav.vue'
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">将Word文档转换为PDF文件</p>
             <RouterLink to="/word-to-pdf" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
+          
+          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div class="mb-4 flex items-center justify-center h-24 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">PPT转PDF</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">将PPT演示文稿转换为PDF文件</p>
+            <RouterLink to="/ppt-to-pdf" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+          </div>
         </div>
       </section>
     </div>
