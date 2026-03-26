@@ -14,8 +14,9 @@ const handleFileSelect = async (event) => {
   const file = event.target.files[0]
   if (!file) return
 
-  if (!file.name.endsWith('.ppt') && !file.name.endsWith('.pptx')) {
-    alert('请选择有效的PPT文件（.ppt或.pptx格式）')
+  const fileName = file.name.toLowerCase()
+  if (!fileName.endsWith('.pptx')) {
+    alert('目前仅支持 .pptx 格式，请转换后上传')
     return
   }
 
@@ -38,35 +39,70 @@ const handleFileSelect = async (event) => {
         return numA - numB
       })
     
-    progress.value = 60
+    if (slideFiles.length === 0) {
+      throw new Error('未找到幻灯片内容，请确保文件格式正确')
+    }
+    
+    progress.value = 50
     
     const mediaFiles = {}
     const mediaEntries = Object.keys(zip.files).filter(name => name.startsWith('ppt/media/'))
     for (const mediaName of mediaEntries) {
-      const blob = await zip.file(mediaName).async('blob')
-      mediaFiles[mediaName] = URL.createObjectURL(blob)
+      const file = zip.file(mediaName)
+      if (file) {
+        try {
+          const blob = await file.async('blob')
+          mediaFiles[mediaName] = URL.createObjectURL(blob)
+        } catch (e) {
+          console.warn('媒体文件加载失败:', mediaName)
+        }
+      }
     }
     
-    progress.value = 80
+    progress.value = 60
+    
+    const slideRels = {}
+    const relsFile = zip.file('ppt/_rels/presentation.xml.rels')
+    if (relsFile) {
+      const relsXml = await relsFile.async('string')
+      const relsDoc = new DOMParser().parseFromString(relsXml, 'text/xml')
+      const relationships = relsDoc.querySelectorAll('Relationship')
+      relationships.forEach(rel => {
+        const id = rel.getAttribute('Id')
+        const target = rel.getAttribute('Target')
+        if (id && target) {
+          slideRels[id] = target
+        }
+      })
+    }
+    
+    progress.value = 70
     
     for (let i = 0; i < slideFiles.length; i++) {
-      const slideXml = await zip.file(slideFiles[i]).async('string')
-      const slideContent = parseSlideXml(slideXml, mediaFiles)
+      const slideFile = zip.file(slideFiles[i])
+      if (!slideFile) continue
+      
+      const slideXml = await slideFile.async('string')
+      const slideContent = parseSlideXml(slideXml, mediaFiles, slideRels, i + 1)
       slides.value.push({
         index: i + 1,
         content: slideContent.texts,
         images: slideContent.images
       })
+      
+      progress.value = 70 + Math.floor((i + 1) / slideFiles.length * 25)
     }
     
     progress.value = 100
   } catch (error) {
     console.error('PPT解析失败:', error)
     alert('PPT文件解析失败: ' + error.message)
+    pptFile.value = null
+    progress.value = 0
   }
 }
 
-const parseSlideXml = (xml, mediaFiles) => {
+const parseSlideXml = (xml, mediaFiles, slideRels, slideNum) => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/xml')
   
@@ -85,34 +121,16 @@ const parseSlideXml = (xml, mediaFiles) => {
   blipElements.forEach(blip => {
     const embed = blip.getAttribute('r:embed') || blip.getAttribute('embed')
     if (embed) {
-      const relsMatch = xml.match(/r:id="([^"]+)"/g)
-      if (relsMatch) {
-        for (const match of relsMatch) {
-          const id = match.match(/r:id="([^"]+)"/)?.[1]
-          if (id === embed) {
-            const mediaKey = Object.keys(mediaFiles).find(key => key.includes(embed))
-            if (mediaKey && mediaFiles[mediaKey]) {
-              images.push(mediaFiles[mediaKey])
-            }
-          }
+      let mediaKey = Object.keys(mediaFiles).find(key => key.includes(embed))
+      if (!mediaKey) {
+        const mediaEntries = Object.keys(mediaFiles)
+        const idx = (slideNum - 1) % Math.max(1, mediaEntries.length)
+        if (mediaEntries[idx]) {
+          mediaKey = mediaEntries[idx]
         }
       }
-    }
-  })
-  
-  const picElements = doc.querySelectorAll('p\\:pic, pic')
-  picElements.forEach(pic => {
-    const blip = pic.querySelector('a\\:blip, blip')
-    if (blip) {
-      const embed = blip.getAttribute('r:embed') || blip.getAttribute('embed')
-      if (embed) {
-        const mediaKey = Object.keys(mediaFiles).find(key => 
-          key.toLowerCase().includes(embed.toLowerCase()) || 
-          key.includes('image')
-        )
-        if (mediaKey && mediaFiles[mediaKey] && !images.includes(mediaFiles[mediaKey])) {
-          images.push(mediaFiles[mediaKey])
-        }
+      if (mediaKey && mediaFiles[mediaKey] && !images.includes(mediaFiles[mediaKey])) {
+        images.push(mediaFiles[mediaKey])
       }
     }
   })
@@ -220,14 +238,14 @@ const convertToPdf = async () => {
         </div>
 
         <div v-if="!pptFile" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary-500 dark:hover:border-primary-400 transition-colors">
-          <input type="file" accept=".ppt,.pptx" @change="handleFileSelect"
+          <input type="file" accept=".pptx" @change="handleFileSelect"
                  class="hidden" id="pptInput">
           <label for="pptInput" class="cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
             <p class="text-gray-600 dark:text-gray-400">点击选择PPT文件</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">支持 .ppt 和 .pptx 格式</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">仅支持 .pptx 格式</p>
           </label>
         </div>
 
