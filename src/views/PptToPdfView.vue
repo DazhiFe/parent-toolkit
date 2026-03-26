@@ -26,10 +26,10 @@ const handleFileSelect = async (event) => {
 
   try {
     const arrayBuffer = await file.arrayBuffer()
-    progress.value = 20
+    progress.value = 10
     
     const zip = await JSZip.loadAsync(arrayBuffer)
-    progress.value = 40
+    progress.value = 20
     
     const slideFiles = Object.keys(zip.files)
       .filter(name => name.match(/ppt\/slides\/slide\d+\.xml$/))
@@ -43,15 +43,15 @@ const handleFileSelect = async (event) => {
       throw new Error('未找到幻灯片内容，请确保文件格式正确')
     }
     
-    progress.value = 50
+    progress.value = 30
     
     const mediaFiles = {}
     const mediaEntries = Object.keys(zip.files).filter(name => name.startsWith('ppt/media/'))
     for (const mediaName of mediaEntries) {
-      const file = zip.file(mediaName)
-      if (file) {
+      const mediaFile = zip.file(mediaName)
+      if (mediaFile) {
         try {
-          const blob = await file.async('blob')
+          const blob = await mediaFile.async('blob')
           mediaFiles[mediaName] = URL.createObjectURL(blob)
         } catch (e) {
           console.warn('媒体文件加载失败:', mediaName)
@@ -59,38 +59,47 @@ const handleFileSelect = async (event) => {
       }
     }
     
-    progress.value = 60
+    progress.value = 40
     
-    const slideRels = {}
-    const relsFile = zip.file('ppt/_rels/presentation.xml.rels')
-    if (relsFile) {
-      const relsXml = await relsFile.async('string')
-      const relsDoc = new DOMParser().parseFromString(relsXml, 'text/xml')
-      const relationships = relsDoc.querySelectorAll('Relationship')
-      relationships.forEach(rel => {
-        const id = rel.getAttribute('Id')
-        const target = rel.getAttribute('Target')
-        if (id && target) {
-          slideRels[id] = target
-        }
-      })
+    const slideRelsMap = {}
+    for (let i = 1; i <= slideFiles.length; i++) {
+      const relsPath = `ppt/slides/_rels/slide${i}.xml.rels`
+      const relsFile = zip.file(relsPath)
+      if (relsFile) {
+        const relsXml = await relsFile.async('string')
+        const relsDoc = new DOMParser().parseFromString(relsXml, 'text/xml')
+        const relationships = relsDoc.querySelectorAll('Relationship')
+        const rels = {}
+        relationships.forEach(rel => {
+          const id = rel.getAttribute('Id')
+          const target = rel.getAttribute('Target')
+          if (id && target) {
+            rels[id] = target.replace('../media/', 'ppt/media/')
+          }
+        })
+        slideRelsMap[i] = rels
+      }
     }
     
-    progress.value = 70
+    progress.value = 50
     
     for (let i = 0; i < slideFiles.length; i++) {
       const slideFile = zip.file(slideFiles[i])
       if (!slideFile) continue
       
       const slideXml = await slideFile.async('string')
-      const slideContent = parseSlideXml(slideXml, mediaFiles, slideRels, i + 1)
+      const slideNum = i + 1
+      const slideRels = slideRelsMap[slideNum] || {}
+      const slideContent = parseSlideXml(slideXml, mediaFiles, slideRels)
+      
       slides.value.push({
-        index: i + 1,
-        content: slideContent.texts,
+        index: slideNum,
+        shapes: slideContent.shapes,
+        texts: slideContent.texts,
         images: slideContent.images
       })
       
-      progress.value = 70 + Math.floor((i + 1) / slideFiles.length * 25)
+      progress.value = 50 + Math.floor((i + 1) / slideFiles.length * 45)
     }
     
     progress.value = 100
@@ -102,40 +111,200 @@ const handleFileSelect = async (event) => {
   }
 }
 
-const parseSlideXml = (xml, mediaFiles, slideRels, slideNum) => {
+const parseSlideXml = (xml, mediaFiles, slideRels) => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/xml')
   
+  const shapes = []
   const texts = []
   const images = []
   
-  const textElements = doc.querySelectorAll('a\\:t, t')
-  textElements.forEach(el => {
-    const text = el.textContent.trim()
-    if (text) {
-      texts.push(text)
+  const spElements = doc.querySelectorAll('p\\:sp, sp')
+  spElements.forEach(sp => {
+    const shape = parseShape(sp, mediaFiles, slideRels)
+    if (shape) {
+      shapes.push(shape)
+      if (shape.texts) {
+        texts.push(...shape.texts)
+      }
+      if (shape.image) {
+        images.push(shape.image)
+      }
     }
   })
   
-  const blipElements = doc.querySelectorAll('a\\:blip, blip')
-  blipElements.forEach(blip => {
-    const embed = blip.getAttribute('r:embed') || blip.getAttribute('embed')
-    if (embed) {
-      let mediaKey = Object.keys(mediaFiles).find(key => key.includes(embed))
-      if (!mediaKey) {
-        const mediaEntries = Object.keys(mediaFiles)
-        const idx = (slideNum - 1) % Math.max(1, mediaEntries.length)
-        if (mediaEntries[idx]) {
-          mediaKey = mediaEntries[idx]
+  const picElements = doc.querySelectorAll('p\\:pic, pic')
+  picElements.forEach(pic => {
+    const img = parsePicture(pic, mediaFiles, slideRels)
+    if (img) {
+      shapes.push(img)
+      images.push(img.image)
+    }
+  })
+  
+  const graphicElements = doc.querySelectorAll('a\\:graphic, graphic')
+  graphicElements.forEach(graphic => {
+    const img = parseGraphic(graphic, mediaFiles, slideRels)
+    if (img) {
+      shapes.push(img)
+      images.push(img.image)
+    }
+  })
+  
+  return { shapes, texts, images }
+}
+
+const parseShape = (sp, mediaFiles, slideRels) => {
+  const nvSpPr = sp.querySelector('p\\:nvSpPr, nvSpPr')
+  const spPr = sp.querySelector('p\\:spPr, spPr')
+  const txBody = sp.querySelector('p\\:txBody, txBody')
+  
+  const shape = {
+    type: 'shape',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 50,
+    texts: [],
+    fill: null
+  }
+  
+  if (spPr) {
+    const xfrm = spPr.querySelector('a\\:xfrm, xfrm')
+    if (xfrm) {
+      const off = xfrm.querySelector('a\\:off, off')
+      const ext = xfrm.querySelector('a\\:ext, ext')
+      if (off) {
+        shape.x = parseInt(off.getAttribute('x') || 0) / 914400
+        shape.y = parseInt(off.getAttribute('y') || 0) / 914400
+      }
+      if (ext) {
+        shape.width = parseInt(ext.getAttribute('cx') || 9144000) / 914400
+        shape.height = parseInt(ext.getAttribute('cy') || 4572000) / 914400
+      }
+    }
+    
+    const solidFill = spPr.querySelector('a\\:solidFill, solidFill')
+    if (solidFill) {
+      const srgbClr = solidFill.querySelector('a\\:srgbClr, srgbClr')
+      if (srgbClr) {
+        shape.fill = '#' + (srgbClr.getAttribute('val') || 'FFFFFF')
+      }
+    }
+  }
+  
+  if (txBody) {
+    const paragraphs = txBody.querySelectorAll('a\\:p, p')
+    paragraphs.forEach(p => {
+      const textRuns = p.querySelectorAll('a\\:r, r')
+      let paraText = ''
+      textRuns.forEach(r => {
+        const t = r.querySelector('a\\:t, t')
+        if (t && t.textContent) {
+          paraText += t.textContent
+        }
+      })
+      if (paraText.trim()) {
+        const fontSize = getFontSize(p)
+        shape.texts.push({
+          text: paraText.trim(),
+          fontSize: fontSize
+        })
+        if (!shape.fill) {
+          shape.fill = '#FFFFFF'
         }
       }
-      if (mediaKey && mediaFiles[mediaKey] && !images.includes(mediaFiles[mediaKey])) {
-        images.push(mediaFiles[mediaKey])
+    })
+  }
+  
+  if (shape.texts.length === 0 && !shape.fill) {
+    return null
+  }
+  
+  return shape
+}
+
+const getFontSize = (p) => {
+  const defRPr = p.querySelector('a\\:defRPr, defRPr')
+  if (defRPr) {
+    const sz = defRPr.getAttribute('sz')
+    if (sz) {
+      return parseInt(sz) / 100
+    }
+  }
+  const rPr = p.querySelector('a\\:rPr, rPr')
+  if (rPr) {
+    const sz = rPr.getAttribute('sz')
+    if (sz) {
+      return parseInt(sz) / 100
+    }
+  }
+  return 18
+}
+
+const parsePicture = (pic, mediaFiles, slideRels) => {
+  const nvPicPr = pic.querySelector('p\\:nvPicPr, nvPicPr')
+  const blipFill = pic.querySelector('p\\:blipFill, blipFill')
+  const spPr = pic.querySelector('p\\:spPr, spPr')
+  
+  const shape = {
+    type: 'image',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 50,
+    image: null
+  }
+  
+  if (spPr) {
+    const xfrm = spPr.querySelector('a\\:xfrm, xfrm')
+    if (xfrm) {
+      const off = xfrm.querySelector('a\\:off, off')
+      const ext = xfrm.querySelector('a\\:ext, ext')
+      if (off) {
+        shape.x = parseInt(off.getAttribute('x') || 0) / 914400
+        shape.y = parseInt(off.getAttribute('y') || 0) / 914400
+      }
+      if (ext) {
+        shape.width = parseInt(ext.getAttribute('cx') || 9144000) / 914400
+        shape.height = parseInt(ext.getAttribute('cy') || 4572000) / 914400
       }
     }
-  })
+  }
   
-  return { texts, images }
+  if (blipFill) {
+    const blip = blipFill.querySelector('a\\:blip, blip')
+    if (blip) {
+      const embed = blip.getAttribute('r:embed') || blip.getAttribute('embed')
+      if (embed && slideRels[embed]) {
+        const mediaPath = slideRels[embed]
+        if (mediaFiles[mediaPath]) {
+          shape.image = mediaFiles[mediaPath]
+        }
+      }
+    }
+  }
+  
+  if (!shape.image) {
+    const mediaKeys = Object.keys(mediaFiles)
+    if (mediaKeys.length > 0) {
+      shape.image = mediaFiles[mediaKeys[0]]
+    }
+  }
+  
+  return shape.image ? shape : null
+}
+
+const parseGraphic = (graphic, mediaFiles, slideRels) => {
+  const graphicData = graphic.querySelector('a\\:graphicData, graphicData')
+  if (!graphicData) return null
+  
+  const pic = graphicData.querySelector('pic\\:pic, pic')
+  if (pic) {
+    return parsePicture(pic, mediaFiles, slideRels)
+  }
+  
+  return null
 }
 
 const clearFile = () => {
@@ -161,29 +330,62 @@ const convertToPdf = async () => {
 
     const pdfPageWidth = pdf.internal.pageSize.getWidth()
     const pdfPageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 10
+    const slideWidth = 338.667
+    const slideHeight = 190.5
+    const marginX = (pdfPageWidth - slideWidth) / 2
+    const marginY = (pdfPageHeight - slideHeight) / 2
 
     for (let i = 0; i < slides.value.length; i++) {
       if (i > 0) {
         pdf.addPage()
       }
 
-      const slideEl = document.getElementById(`slide-${i}`)
-      if (!slideEl) continue
+      const slide = slides.value[i]
+      pdf.setFillColor(255, 255, 255)
+      pdf.rect(marginX, marginY, slideWidth, slideHeight, 'F')
+      pdf.setDrawColor(200, 200, 200)
+      pdf.rect(marginX, marginY, slideWidth, slideHeight, 'S')
 
-      const canvas = await html2canvas(slideEl, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false
-      })
+      pdf.setFontSize(10)
+      pdf.setTextColor(150, 150, 150)
+      pdf.text(`第 ${slide.index} 页`, marginX + 2, marginY + 5)
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95)
-      const imgWidth = pdfPageWidth - margin * 2
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-      pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight)
+      let currentY = marginY + 15
+      
+      for (const shape of slide.shapes) {
+        if (shape.type === 'image' && shape.image) {
+          try {
+            const imgX = marginX + (shape.x * slideWidth / 338.667)
+            const imgY = marginY + (shape.y * slideHeight / 190.5)
+            const imgW = shape.width * slideWidth / 338.667
+            const imgH = shape.height * slideHeight / 190.5
+            
+            pdf.addImage(shape.image, 'JPEG', imgX, imgY, imgW, imgH)
+          } catch (e) {
+            console.warn('图片添加失败:', e)
+          }
+        } else if (shape.texts && shape.texts.length > 0) {
+          for (const textItem of shape.texts) {
+            if (currentY < marginY + slideHeight - 10) {
+              const fontSize = Math.min(textItem.fontSize * 0.3, 12)
+              pdf.setFontSize(fontSize)
+              pdf.setTextColor(50, 50, 50)
+              
+              const textX = marginX + 5
+              const maxWidth = slideWidth - 10
+              const lines = pdf.splitTextToSize(textItem.text, maxWidth)
+              
+              for (const line of lines.slice(0, 3)) {
+                if (currentY < marginY + slideHeight - 10) {
+                  pdf.text(line, textX, currentY)
+                  currentY += fontSize * 0.5
+                }
+              }
+              currentY += 2
+            }
+          }
+        }
+      }
     }
 
     const fileName = pptFile.value?.name?.replace(/\.(ppt|pptx)$/i, '') || 'output'
@@ -269,22 +471,21 @@ const convertToPdf = async () => {
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">幻灯片预览</h3>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div v-for="(slide, index) in slides" :key="index"
-                   :id="`slide-${index}`"
-                   class="aspect-video bg-white border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <div class="h-full flex flex-col">
-                  <div class="text-xs text-gray-400 mb-2">第 {{ slide.index }} 页</div>
-                  <div class="flex-1 overflow-hidden">
-                    <p v-for="(text, tIndex) in slide.content.slice(0, 5)" :key="tIndex"
-                       class="text-xs text-gray-700 dark:text-gray-300 truncate mb-1">
-                      {{ text }}
-                    </p>
-                    <p v-if="slide.content.length > 5" class="text-xs text-gray-400">
-                      ... 还有 {{ slide.content.length - 5 }} 条内容
-                    </p>
-                  </div>
-                  <div v-if="slide.images.length > 0" class="flex gap-1 mt-2">
-                    <img v-for="(img, imgIndex) in slide.images.slice(0, 3)" :key="imgIndex"
-                         :src="img" class="h-8 w-8 object-cover rounded" />
+                   class="aspect-video bg-white border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm overflow-hidden">
+                <div class="text-xs text-gray-400 mb-2">第 {{ slide.index }} 页</div>
+                <div class="space-y-1 overflow-hidden">
+                  <p v-for="(text, tIndex) in slide.texts.slice(0, 4)" :key="tIndex"
+                     class="text-xs text-gray-700 dark:text-gray-300 truncate">
+                    {{ text.text }}
+                  </p>
+                  <p v-if="slide.texts.length > 4" class="text-xs text-gray-400">
+                    ... 还有 {{ slide.texts.length - 4 }} 条内容
+                  </p>
+                </div>
+                <div v-if="slide.images.length > 0" class="flex gap-1 mt-2 flex-wrap">
+                  <div v-for="(img, imgIndex) in slide.images.slice(0, 2)" :key="imgIndex"
+                       class="h-6 w-6 bg-gray-100 rounded overflow-hidden">
+                    <img :src="img" class="h-full w-full object-cover" />
                   </div>
                 </div>
               </div>
