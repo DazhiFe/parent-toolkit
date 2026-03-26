@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import JSZip from 'jszip'
@@ -155,7 +155,6 @@ const parseSlideXml = (xml, mediaFiles, slideRels) => {
 }
 
 const parseShape = (sp, mediaFiles, slideRels) => {
-  const nvSpPr = sp.querySelector('p\\:nvSpPr, nvSpPr')
   const spPr = sp.querySelector('p\\:spPr, spPr')
   const txBody = sp.querySelector('p\\:txBody, txBody')
   
@@ -243,7 +242,6 @@ const getFontSize = (p) => {
 }
 
 const parsePicture = (pic, mediaFiles, slideRels) => {
-  const nvPicPr = pic.querySelector('p\\:nvPicPr, nvPicPr')
   const blipFill = pic.querySelector('p\\:blipFill, blipFill')
   const spPr = pic.querySelector('p\\:spPr, spPr')
   
@@ -322,6 +320,8 @@ const convertToPdf = async () => {
   isConverting.value = true
 
   try {
+    await nextTick()
+    
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -330,62 +330,30 @@ const convertToPdf = async () => {
 
     const pdfPageWidth = pdf.internal.pageSize.getWidth()
     const pdfPageHeight = pdf.internal.pageSize.getHeight()
-    const slideWidth = 338.667
-    const slideHeight = 190.5
-    const marginX = (pdfPageWidth - slideWidth) / 2
-    const marginY = (pdfPageHeight - slideHeight) / 2
 
     for (let i = 0; i < slides.value.length; i++) {
       if (i > 0) {
         pdf.addPage()
       }
 
-      const slide = slides.value[i]
-      pdf.setFillColor(255, 255, 255)
-      pdf.rect(marginX, marginY, slideWidth, slideHeight, 'F')
-      pdf.setDrawColor(200, 200, 200)
-      pdf.rect(marginX, marginY, slideWidth, slideHeight, 'S')
+      const slideEl = document.getElementById(`slide-preview-${i}`)
+      if (!slideEl) continue
 
-      pdf.setFontSize(10)
-      pdf.setTextColor(150, 150, 150)
-      pdf.text(`第 ${slide.index} 页`, marginX + 2, marginY + 5)
+      const canvas = await html2canvas(slideEl, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      })
 
-      let currentY = marginY + 15
-      
-      for (const shape of slide.shapes) {
-        if (shape.type === 'image' && shape.image) {
-          try {
-            const imgX = marginX + (shape.x * slideWidth / 338.667)
-            const imgY = marginY + (shape.y * slideHeight / 190.5)
-            const imgW = shape.width * slideWidth / 338.667
-            const imgH = shape.height * slideHeight / 190.5
-            
-            pdf.addImage(shape.image, 'JPEG', imgX, imgY, imgW, imgH)
-          } catch (e) {
-            console.warn('图片添加失败:', e)
-          }
-        } else if (shape.texts && shape.texts.length > 0) {
-          for (const textItem of shape.texts) {
-            if (currentY < marginY + slideHeight - 10) {
-              const fontSize = Math.min(textItem.fontSize * 0.3, 12)
-              pdf.setFontSize(fontSize)
-              pdf.setTextColor(50, 50, 50)
-              
-              const textX = marginX + 5
-              const maxWidth = slideWidth - 10
-              const lines = pdf.splitTextToSize(textItem.text, maxWidth)
-              
-              for (const line of lines.slice(0, 3)) {
-                if (currentY < marginY + slideHeight - 10) {
-                  pdf.text(line, textX, currentY)
-                  currentY += fontSize * 0.5
-                }
-              }
-              currentY += 2
-            }
-          }
-        }
-      }
+      const imgData = canvas.toDataURL('image/jpeg', 0.95)
+      const imgWidth = pdfPageWidth - 20
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const marginX = 10
+      const marginY = (pdfPageHeight - imgHeight) / 2
+
+      pdf.addImage(imgData, 'JPEG', marginX, marginY, imgWidth, imgHeight)
     }
 
     const fileName = pptFile.value?.name?.replace(/\.(ppt|pptx)$/i, '') || 'output'
@@ -471,21 +439,22 @@ const convertToPdf = async () => {
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">幻灯片预览</h3>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div v-for="(slide, index) in slides" :key="index"
-                   class="aspect-video bg-white border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm overflow-hidden">
-                <div class="text-xs text-gray-400 mb-2">第 {{ slide.index }} 页</div>
-                <div class="space-y-1 overflow-hidden">
-                  <p v-for="(text, tIndex) in slide.texts.slice(0, 4)" :key="tIndex"
-                     class="text-xs text-gray-700 dark:text-gray-300 truncate">
-                    {{ text.text }}
-                  </p>
-                  <p v-if="slide.texts.length > 4" class="text-xs text-gray-400">
-                    ... 还有 {{ slide.texts.length - 4 }} 条内容
-                  </p>
-                </div>
-                <div v-if="slide.images.length > 0" class="flex gap-1 mt-2 flex-wrap">
-                  <div v-for="(img, imgIndex) in slide.images.slice(0, 2)" :key="imgIndex"
-                       class="h-6 w-6 bg-gray-100 rounded overflow-hidden">
-                    <img :src="img" class="h-full w-full object-cover" />
+                   :id="`slide-preview-${index}`"
+                   class="aspect-video bg-white border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <div class="w-full h-full p-4 flex flex-col">
+                  <div class="text-xs text-gray-400 mb-2">第 {{ slide.index }} 页</div>
+                  <div class="flex-1 overflow-hidden space-y-1">
+                    <p v-for="(text, tIndex) in slide.texts.slice(0, 6)" :key="tIndex"
+                       class="text-sm text-gray-800 truncate">
+                      {{ text.text }}
+                    </p>
+                    <p v-if="slide.texts.length > 6" class="text-xs text-gray-400">
+                      ... 还有 {{ slide.texts.length - 6 }} 条内容
+                    </p>
+                  </div>
+                  <div v-if="slide.images.length > 0" class="flex gap-1 mt-2 flex-wrap">
+                    <img v-for="(img, imgIndex) in slide.images.slice(0, 3)" :key="imgIndex"
+                         :src="img" class="h-10 w-10 object-cover rounded" />
                   </div>
                 </div>
               </div>
