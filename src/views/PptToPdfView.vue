@@ -61,25 +61,40 @@ const handleFileSelect = async (event) => {
     
     progress.value = 40
     
-    const slideRelsMap = {}
-    for (let i = 1; i <= slideFiles.length; i++) {
-      const relsPath = `ppt/slides/_rels/slide${i}.xml.rels`
-      const relsFile = zip.file(relsPath)
-      if (relsFile) {
-        const relsXml = await relsFile.async('string')
-        const relsDoc = new DOMParser().parseFromString(relsXml, 'text/xml')
-        const relationships = relsDoc.querySelectorAll('Relationship')
-        const rels = {}
-        relationships.forEach(rel => {
-          const id = rel.getAttribute('Id')
-          const target = rel.getAttribute('Target')
-          if (id && target) {
-            rels[id] = target.replace('../media/', 'ppt/media/')
-          }
-        })
-        slideRelsMap[i] = rels
+    const allRels = {}
+    Object.keys(zip.files).forEach(name => {
+      if (name.endsWith('.rels')) {
+        const relsFile = zip.file(name)
+        if (relsFile) {
+          relsFile.async('string').then(xml => {
+            const doc = new DOMParser().parseFromString(xml, 'text/xml')
+            doc.querySelectorAll('Relationship').forEach(rel => {
+              const id = rel.getAttribute('Id')
+              const target = rel.getAttribute('Target')
+              if (id && target) {
+                let basePath = name.replace('_rels/', '').replace('.rels', '')
+                if (target.startsWith('../')) {
+                  const parts = basePath.split('/')
+                  parts.pop()
+                  target.split('/').forEach(part => {
+                    if (part === '..') {
+                      parts.pop()
+                    } else {
+                      parts.push(part)
+                    }
+                  })
+                  allRels[`${basePath}:${id}`] = parts.join('/')
+                } else {
+                  allRels[`${basePath}:${id}`] = basePath.substring(0, basePath.lastIndexOf('/') + 1) + target
+                }
+              }
+            })
+          })
+        }
       }
-    }
+    })
+    
+    await new Promise(resolve => setTimeout(resolve, 100))
     
     progress.value = 50
     
@@ -89,8 +104,8 @@ const handleFileSelect = async (event) => {
       
       const slideXml = await slideFile.async('string')
       const slideNum = i + 1
-      const slideRels = slideRelsMap[slideNum] || {}
-      const slideContent = parseSlideXml(slideXml, mediaFiles, slideRels)
+      const slidePath = slideFiles[i].replace('.xml', '')
+      const slideContent = parseSlideXml(slideXml, mediaFiles, allRels, slidePath)
       
       slides.value.push({
         index: slideNum,
@@ -111,7 +126,7 @@ const handleFileSelect = async (event) => {
   }
 }
 
-const parseSlideXml = (xml, mediaFiles, slideRels) => {
+const parseSlideXml = (xml, mediaFiles, allRels, slidePath) => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/xml')
   
@@ -119,75 +134,88 @@ const parseSlideXml = (xml, mediaFiles, slideRels) => {
   const texts = []
   const images = []
   
-  const spElements = doc.querySelectorAll('p\\:sp, sp')
-  spElements.forEach(sp => {
-    const shape = parseShape(sp, mediaFiles, slideRels)
-    if (shape) {
-      shapes.push(shape)
-      if (shape.texts) {
-        texts.push(...shape.texts)
-      }
-      if (shape.image) {
-        images.push(shape.image)
-      }
-    }
-  })
+  const spTree = doc.querySelector('p\\:spTree, spTree')
+  if (!spTree) return { shapes, texts, images }
   
-  const picElements = doc.querySelectorAll('p\\:pic, pic')
-  picElements.forEach(pic => {
-    const img = parsePicture(pic, mediaFiles, slideRels)
-    if (img) {
-      shapes.push(img)
-      images.push(img.image)
+  const allElements = spTree.children
+  for (const elem of allElements) {
+    const localName = elem.localName || elem.tagName.split(':').pop()
+    
+    if (localName === 'sp') {
+      const shape = parseShape(elem, mediaFiles, allRels, slidePath)
+      if (shape) {
+        shapes.push(shape)
+        if (shape.texts) {
+          texts.push(...shape.texts)
+        }
+      }
+    } else if (localName === 'pic') {
+      const img = parsePicture(elem, mediaFiles, allRels, slidePath)
+      if (img) {
+        shapes.push(img)
+        images.push(img.image)
+      }
+    } else if (localName === 'graphicFrame') {
+      const graphicShapes = parseGraphicFrame(elem, mediaFiles, allRels, slidePath)
+      graphicShapes.forEach(shape => {
+        shapes.push(shape)
+        if (shape.texts) {
+          texts.push(...shape.texts)
+        }
+      })
     }
-  })
-  
-  const graphicElements = doc.querySelectorAll('a\\:graphic, graphic')
-  graphicElements.forEach(graphic => {
-    const img = parseGraphic(graphic, mediaFiles, slideRels)
-    if (img) {
-      shapes.push(img)
-      images.push(img.image)
-    }
-  })
+  }
   
   return { shapes, texts, images }
 }
 
-const parseShape = (sp, mediaFiles, slideRels) => {
-  const spPr = sp.querySelector('p\\:spPr, spPr')
+const getPosition = (elem) => {
+  const result = { x: 0, y: 0, width: 100, height: 50 }
+  
+  const xfrm = elem.querySelector('a\\:xfrm, xfrm')
+  if (xfrm) {
+    const off = xfrm.querySelector('a\\:off, off')
+    const ext = xfrm.querySelector('a\\:ext, ext')
+    if (off) {
+      result.x = parseInt(off.getAttribute('x') || 0) / 914400
+      result.y = parseInt(off.getAttribute('y') || 0) / 914400
+    }
+    if (ext) {
+      result.width = parseInt(ext.getAttribute('cx') || 9144000) / 914400
+      result.height = parseInt(ext.getAttribute('cy') || 4572000) / 914400
+    }
+  }
+  
+  return result
+}
+
+const parseShape = (sp, mediaFiles, allRels, slidePath) => {
   const txBody = sp.querySelector('p\\:txBody, txBody')
+  const pos = getPosition(sp.querySelector('p\\:spPr, spPr'))
   
   const shape = {
     type: 'shape',
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 50,
+    ...pos,
     texts: [],
-    fill: null
+    fill: '#FFFFFF'
   }
   
+  const spPr = sp.querySelector('p\\:spPr, spPr')
   if (spPr) {
-    const xfrm = spPr.querySelector('a\\:xfrm, xfrm')
-    if (xfrm) {
-      const off = xfrm.querySelector('a\\:off, off')
-      const ext = xfrm.querySelector('a\\:ext, ext')
-      if (off) {
-        shape.x = parseInt(off.getAttribute('x') || 0) / 914400
-        shape.y = parseInt(off.getAttribute('y') || 0) / 914400
-      }
-      if (ext) {
-        shape.width = parseInt(ext.getAttribute('cx') || 9144000) / 914400
-        shape.height = parseInt(ext.getAttribute('cy') || 4572000) / 914400
-      }
-    }
-    
     const solidFill = spPr.querySelector('a\\:solidFill, solidFill')
     if (solidFill) {
       const srgbClr = solidFill.querySelector('a\\:srgbClr, srgbClr')
+      const schemeClr = solidFill.querySelector('a\\:schemeClr, schemeClr')
       if (srgbClr) {
-        shape.fill = '#' + (srgbClr.getAttribute('val') || 'FFFFFF')
+        shape.fill = '#' + srgbClr.getAttribute('val')
+      } else if (schemeClr) {
+        const colorMap = {
+          'lt1': '#FFFFFF', 'lt2': '#E6E6E6', 'dk1': '#000000', 'dk2': '#1F497D',
+          'accent1': '#4472C4', 'accent2': '#ED7D31', 'accent3': '#A5A5A5',
+          'accent4': '#FFC000', 'accent5': '#5B9BD5', 'accent6': '#70AD47',
+          'hlink': '#0563C1', 'folHlink': '#954F72', 'tx1': '#000000', 'tx2': '#1F497D'
+        }
+        shape.fill = colorMap[schemeClr.getAttribute('val')] || '#FFFFFF'
       }
     }
   }
@@ -195,89 +223,89 @@ const parseShape = (sp, mediaFiles, slideRels) => {
   if (txBody) {
     const paragraphs = txBody.querySelectorAll('a\\:p, p')
     paragraphs.forEach(p => {
-      const textRuns = p.querySelectorAll('a\\:r, r')
-      let paraText = ''
-      textRuns.forEach(r => {
-        const t = r.querySelector('a\\:t, t')
-        if (t && t.textContent) {
-          paraText += t.textContent
-        }
-      })
-      if (paraText.trim()) {
-        const fontSize = getFontSize(p)
+      const textContent = extractTextFromParagraph(p)
+      if (textContent.text.trim()) {
         shape.texts.push({
-          text: paraText.trim(),
-          fontSize: fontSize
+          text: textContent.text.trim(),
+          fontSize: textContent.fontSize,
+          bold: textContent.bold,
+          color: textContent.color
         })
-        if (!shape.fill) {
-          shape.fill = '#FFFFFF'
-        }
       }
     })
   }
   
-  if (shape.texts.length === 0 && !shape.fill) {
+  if (shape.texts.length === 0) {
     return null
   }
   
   return shape
 }
 
-const getFontSize = (p) => {
+const extractTextFromParagraph = (p) => {
+  let text = ''
+  let fontSize = 18
+  let bold = false
+  let color = '#000000'
+  
   const defRPr = p.querySelector('a\\:defRPr, defRPr')
   if (defRPr) {
     const sz = defRPr.getAttribute('sz')
-    if (sz) {
-      return parseInt(sz) / 100
-    }
+    if (sz) fontSize = parseInt(sz) / 100
+    bold = defRPr.getAttribute('b') === '1'
   }
-  const rPr = p.querySelector('a\\:rPr, rPr')
-  if (rPr) {
-    const sz = rPr.getAttribute('sz')
-    if (sz) {
-      return parseInt(sz) / 100
+  
+  const textRuns = p.querySelectorAll('a\\:r, r')
+  textRuns.forEach(r => {
+    const rPr = r.querySelector('a\\:rPr, rPr')
+    if (rPr) {
+      const sz = rPr.getAttribute('sz')
+      if (sz) fontSize = parseInt(sz) / 100
+      bold = rPr.getAttribute('b') === '1'
+      
+      const solidFill = rPr.querySelector('a\\:solidFill, solidFill')
+      if (solidFill) {
+        const srgbClr = solidFill.querySelector('a\\:srgbClr, srgbClr')
+        if (srgbClr) {
+          color = '#' + srgbClr.getAttribute('val')
+        }
+      }
     }
-  }
-  return 18
+    
+    const t = r.querySelector('a\\:t, t')
+    if (t && t.textContent) {
+      text += t.textContent
+    }
+  })
+  
+  return { text, fontSize, bold, color }
 }
 
-const parsePicture = (pic, mediaFiles, slideRels) => {
+const parsePicture = (pic, mediaFiles, allRels, slidePath) => {
   const blipFill = pic.querySelector('p\\:blipFill, blipFill')
-  const spPr = pic.querySelector('p\\:spPr, spPr')
+  const pos = getPosition(pic.querySelector('p\\:spPr, spPr'))
   
   const shape = {
     type: 'image',
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 50,
+    ...pos,
     image: null
-  }
-  
-  if (spPr) {
-    const xfrm = spPr.querySelector('a\\:xfrm, xfrm')
-    if (xfrm) {
-      const off = xfrm.querySelector('a\\:off, off')
-      const ext = xfrm.querySelector('a\\:ext, ext')
-      if (off) {
-        shape.x = parseInt(off.getAttribute('x') || 0) / 914400
-        shape.y = parseInt(off.getAttribute('y') || 0) / 914400
-      }
-      if (ext) {
-        shape.width = parseInt(ext.getAttribute('cx') || 9144000) / 914400
-        shape.height = parseInt(ext.getAttribute('cy') || 4572000) / 914400
-      }
-    }
   }
   
   if (blipFill) {
     const blip = blipFill.querySelector('a\\:blip, blip')
     if (blip) {
       const embed = blip.getAttribute('r:embed') || blip.getAttribute('embed')
-      if (embed && slideRels[embed]) {
-        const mediaPath = slideRels[embed]
-        if (mediaFiles[mediaPath]) {
+      if (embed) {
+        const mediaPath = allRels[`${slidePath}:${embed}`]
+        if (mediaPath && mediaFiles[mediaPath]) {
           shape.image = mediaFiles[mediaPath]
+        } else {
+          const matchingKey = Object.keys(mediaFiles).find(key => 
+            key.toLowerCase().includes(embed.toLowerCase())
+          )
+          if (matchingKey) {
+            shape.image = mediaFiles[matchingKey]
+          }
         }
       }
     }
@@ -293,16 +321,69 @@ const parsePicture = (pic, mediaFiles, slideRels) => {
   return shape.image ? shape : null
 }
 
-const parseGraphic = (graphic, mediaFiles, slideRels) => {
-  const graphicData = graphic.querySelector('a\\:graphicData, graphicData')
-  if (!graphicData) return null
+const parseGraphicFrame = (gf, mediaFiles, allRels, slidePath) => {
+  const shapes = []
+  const graphic = gf.querySelector('a\\:graphic, graphic')
+  if (!graphic) return shapes
   
-  const pic = graphicData.querySelector('pic\\:pic, pic')
-  if (pic) {
-    return parsePicture(pic, mediaFiles, slideRels)
+  const graphicData = graphic.querySelector('a\\:graphicData, graphicData')
+  if (!graphicData) return shapes
+  
+  const uri = graphicData.getAttribute('uri')
+  
+  if (uri === 'http://schemas.openxmlformats.org/drawingml/2006/chart') {
+    const chart = graphicData.querySelector('c\\:chart, chart')
+    if (chart) {
+      const shape = {
+        type: 'chart',
+        ...getPosition(gf.querySelector('p\\:xfrm, xfrm') || gf),
+        texts: [{ text: '[图表]', fontSize: 14, bold: false, color: '#666666' }]
+      }
+      shapes.push(shape)
+    }
+  } else if (uri === 'http://schemas.openxmlformats.org/drawingml/2006/table') {
+    const tbl = graphicData.querySelector('a\\:tbl, tbl')
+    if (tbl) {
+      const rows = tbl.querySelectorAll('a\\:tr, tr')
+      let tableText = ''
+      rows.forEach((row, ri) => {
+        const cells = row.querySelectorAll('a\\:tc, tc')
+        cells.forEach(cell => {
+          const cellText = extractTextFromCell(cell)
+          if (cellText) tableText += cellText + ' | '
+        })
+        if (tableText) tableText = tableText.slice(0, -3) + '\n'
+      })
+      if (tableText.trim()) {
+        const shape = {
+          type: 'table',
+          ...getPosition(gf.querySelector('p\\:xfrm, xfrm') || gf),
+          texts: [{ text: tableText.trim(), fontSize: 12, bold: false, color: '#000000' }]
+        }
+        shapes.push(shape)
+      }
+    }
   }
   
-  return null
+  return shapes
+}
+
+const extractTextFromCell = (tc) => {
+  const txBody = tc.querySelector('a\\:txBody, txBody')
+  if (!txBody) return ''
+  
+  let text = ''
+  const paragraphs = txBody.querySelectorAll('a\\:p, p')
+  paragraphs.forEach(p => {
+    const textRuns = p.querySelectorAll('a\\:r, r')
+    textRuns.forEach(r => {
+      const t = r.querySelector('a\\:t, t')
+      if (t && t.textContent) {
+        text += t.textContent
+      }
+    })
+  })
+  return text.trim()
 }
 
 const clearFile = () => {
@@ -374,10 +455,10 @@ const convertToPdf = async () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-5xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">PPT转PDF</h1>
-        <p class="text-gray-600 dark:text-gray-400">将PPT演示文稿转换为PDF文件</p>
+        <p class="text-gray-600 dark:text-gray-400">将PPT演示文稿转换为PDF文件（仅支持.pptx格式）</p>
       </div>
 
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
@@ -436,25 +517,30 @@ const convertToPdf = async () => {
           <p v-if="progress < 100" class="text-sm text-gray-500 dark:text-gray-400 text-center">正在解析文件... {{ progress }}%</p>
 
           <div v-if="slides.length > 0" class="mt-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">幻灯片预览</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">幻灯片预览（点击生成PDF）</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-for="(slide, index) in slides" :key="index"
                    :id="`slide-preview-${index}`"
-                   class="aspect-video bg-white border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
-                <div class="w-full h-full p-4 flex flex-col">
-                  <div class="text-xs text-gray-400 mb-2">第 {{ slide.index }} 页</div>
-                  <div class="flex-1 overflow-hidden space-y-1">
-                    <p v-for="(text, tIndex) in slide.texts.slice(0, 6)" :key="tIndex"
-                       class="text-sm text-gray-800 truncate">
-                      {{ text.text }}
-                    </p>
-                    <p v-if="slide.texts.length > 6" class="text-xs text-gray-400">
-                      ... 还有 {{ slide.texts.length - 6 }} 条内容
-                    </p>
+                   class="bg-white border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden"
+                   style="aspect-ratio: 16/9;">
+                <div class="w-full h-full p-6 flex flex-col relative">
+                  <div class="absolute top-2 left-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500">
+                    第 {{ slide.index }} 页
                   </div>
-                  <div v-if="slide.images.length > 0" class="flex gap-1 mt-2 flex-wrap">
-                    <img v-for="(img, imgIndex) in slide.images.slice(0, 3)" :key="imgIndex"
-                         :src="img" class="h-10 w-10 object-cover rounded" />
+                  
+                  <div class="flex-1 overflow-hidden pt-4">
+                    <div v-for="(shape, sIdx) in slide.shapes" :key="sIdx" class="mb-2">
+                      <div v-if="shape.type === 'image' && shape.image" class="mb-2">
+                        <img :src="shape.image" class="max-h-20 object-contain rounded" />
+                      </div>
+                      <div v-else-if="shape.texts && shape.texts.length > 0">
+                        <p v-for="(textItem, tIdx) in shape.texts" :key="tIdx"
+                           :style="{ fontSize: Math.min(textItem.fontSize * 0.8, 16) + 'px', fontWeight: textItem.bold ? 'bold' : 'normal', color: textItem.color }"
+                           class="mb-1 leading-tight">
+                          {{ textItem.text }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
