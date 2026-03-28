@@ -74,11 +74,6 @@ const router = createRouter({
       component: () => import('../views/ImageCompressView.vue')
     },
     {
-      path: '/ppt-to-pdf',
-      name: 'ppt-to-pdf',
-      component: () => import('../views/PptToPdfView.vue')
-    },
-    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
