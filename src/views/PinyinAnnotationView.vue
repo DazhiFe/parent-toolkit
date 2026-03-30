@@ -97,8 +97,17 @@ const copyWithPinyin = async () => {
 const printResult = () => {
   if (!resultHtml.value) return
   
-  const printWindow = window.open('', '_blank')
-  printWindow.document.write(`
+  let printIframe = document.getElementById('print-iframe')
+  if (!printIframe) {
+    printIframe = document.createElement('iframe')
+    printIframe.id = 'print-iframe'
+    printIframe.style.cssText = 'position: absolute; width: 0; height: 0; border: none; left: -9999px;'
+    document.body.appendChild(printIframe)
+  }
+  
+  const doc = printIframe.contentDocument || printIframe.contentWindow.document
+  doc.open()
+  doc.write(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -141,10 +150,10 @@ const printResult = () => {
     </body>
     </html>
   `)
-  printWindow.document.close()
-  printWindow.focus()
-  printWindow.print()
-  printWindow.close()
+  doc.close()
+  
+  printIframe.contentWindow.focus()
+  printIframe.contentWindow.print()
 }
 </script>
 
