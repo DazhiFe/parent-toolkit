@@ -49,6 +49,11 @@ const router = createRouter({
       component: () => import('../views/AncientPoetryView.vue')
     },
     {
+      path: '/pinyin-annotation',
+      name: 'pinyin-annotation',
+      component: () => import('../views/PinyinAnnotationView.vue')
+    },
+    {
       path: '/image-to-pdf',
       name: 'image-to-pdf',
       component: () => import('../views/ImageToPdfView.vue')
