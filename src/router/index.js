@@ -79,6 +79,11 @@ const router = createRouter({
       component: () => import('../views/ImageCompressView.vue')
     },
     {
+      path: '/video-watermark-removal',
+      name: 'video-watermark-removal',
+      component: () => import('../views/VideoWatermarkRemovalView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
