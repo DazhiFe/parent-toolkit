@@ -187,11 +187,11 @@ const downloadVideo = () => {
             </button>
           </div>
 
-          <div class="aspect-video bg-black rounded-lg overflow-hidden">
+          <div class="aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
             <video 
               :src="videoUrl" 
               controls 
-              class="w-full h-full"
+              class="w-full h-full object-contain"
               @loadedmetadata="handleVideoLoad"
             ></video>
           </div>
@@ -293,8 +293,8 @@ const downloadVideo = () => {
           </button>
         </div>
         
-        <div class="aspect-video bg-black rounded-lg overflow-hidden">
-          <video :src="processedVideoUrl" controls class="w-full h-full"></video>
+        <div class="aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
+          <video :src="processedVideoUrl" controls class="w-full h-full object-contain"></video>
         </div>
 
         <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
