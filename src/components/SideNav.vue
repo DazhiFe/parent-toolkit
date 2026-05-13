@@ -17,7 +17,8 @@ const aiToolsNavItems = ref([
   { id: 'ai-image', title: 'AI图形生成', icon: 'image' },
   { id: 'ai-video', title: 'AI视频生成', icon: 'video' },
   { id: 'ai-learning', title: 'AI学习资源', icon: 'learning' },
-  { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' }
+  { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' },
+  { id: 'ai-news', title: 'AI资讯', icon: 'news', route: '/ai-news' }
 ])
 
 const studyAssistantNavItems = ref([
@@ -52,6 +53,12 @@ watch(() => route.path, (newPath) => {
 }, { immediate: true })
 
 const scrollToSection = (sectionId) => {
+  const item = navItems.value.find(i => i.id === sectionId)
+  if (item && item.route) {
+    window.location.href = item.route
+    return
+  }
+  
   const element = document.getElementById(sectionId)
   if (element) {
     const headerHeight = document.querySelector('header').offsetHeight
@@ -212,6 +219,9 @@ onUnmounted(() => {
               </svg>
               <svg v-else-if="item.icon === 'office-tools'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <svg v-else-if="item.icon === 'news'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
               </svg>
               {{ item.title }}
             </button>
