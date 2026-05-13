@@ -277,6 +277,20 @@ const getColorClass = (color) => {
           </div>
         </div>
       </section>
+
+      <section id="ai-news" class="mb-12">
+        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI资讯</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+          <div v-for="site in newsSites" :key="site.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div :class="['mb-4 flex items-center justify-center h-24 rounded-lg', getColorClass(site.color).bg]">
+              <div :class="getColorClass(site.color).text" v-html="getIcon(site.icon)"></div>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">{{ site.name }}</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">{{ site.description }}</p>
+            <a :href="site.url" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
+          </div>
+        </div>
+      </section>
       
       <section id="ai-image" class="mb-12">
         <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI图形生成</h2>
@@ -387,19 +401,6 @@ const getColorClass = (color) => {
         </div>
       </section>
 
-      <section id="ai-news" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI资讯</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div v-for="site in newsSites" :key="site.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div :class="['mb-4 flex items-center justify-center h-24 rounded-lg', getColorClass(site.color).bg]">
-              <div :class="getColorClass(site.color).text" v-html="getIcon(site.icon)"></div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">{{ site.name }}</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">{{ site.description }}</p>
-            <a :href="site.url" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 </template>
