@@ -84,6 +84,11 @@ const router = createRouter({
       component: () => import('../views/VideoDownloadView.vue')
     },
     {
+      path: '/ai-news',
+      name: 'ai-news',
+      component: () => import('../views/AiNewsView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
