@@ -14,11 +14,11 @@ const homeNavItems = ref([
 
 const aiToolsNavItems = ref([
   { id: 'ai-chat', title: 'AI对话助手', icon: 'chat' },
+  { id: 'ai-news', title: 'AI资讯', icon: 'news' },
   { id: 'ai-image', title: 'AI图形生成', icon: 'image' },
   { id: 'ai-video', title: 'AI视频生成', icon: 'video' },
   { id: 'ai-learning', title: 'AI学习资源', icon: 'learning' },
-  { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' },
-  { id: 'ai-news', title: 'AI资讯', icon: 'news' }
+  { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' }
 ])
 
 const studyAssistantNavItems = ref([
