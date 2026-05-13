@@ -18,7 +18,7 @@ const aiToolsNavItems = ref([
   { id: 'ai-video', title: 'AI视频生成', icon: 'video' },
   { id: 'ai-learning', title: 'AI学习资源', icon: 'learning' },
   { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' },
-  { id: 'ai-news', title: 'AI资讯', icon: 'news', route: '/ai-news' }
+  { id: 'ai-news', title: 'AI资讯', icon: 'news' }
 ])
 
 const studyAssistantNavItems = ref([
@@ -53,12 +53,6 @@ watch(() => route.path, (newPath) => {
 }, { immediate: true })
 
 const scrollToSection = (sectionId) => {
-  const item = navItems.value.find(i => i.id === sectionId)
-  if (item && item.route) {
-    window.location.href = item.route
-    return
-  }
-  
   const element = document.getElementById(sectionId)
   if (element) {
     const headerHeight = document.querySelector('header').offsetHeight
