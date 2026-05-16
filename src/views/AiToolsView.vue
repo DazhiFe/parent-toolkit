@@ -208,7 +208,7 @@ const filteredTools = computed(() => {
 </script>
 
 <template>
-  <div class="flex">
+  <div class="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
     <SideNav />
     
     <div class="flex-1 lg:ml-64 px-4 py-8">
@@ -222,7 +222,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">豆</span>
               </div>
             </div>
@@ -233,7 +233,7 @@ const filteredTools = computed(() => {
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-purple-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">千</span>
               </div>
             </div>
@@ -244,7 +244,7 @@ const filteredTools = computed(() => {
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">智</span>
               </div>
             </div>
@@ -255,7 +255,7 @@ const filteredTools = computed(() => {
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">文</span>
               </div>
             </div>
@@ -266,7 +266,7 @@ const filteredTools = computed(() => {
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-cyan-600 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">D</span>
               </div>
             </div>
@@ -282,7 +282,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div v-for="site in newsSites" :key="site.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div :class="['w-16 h-16 rounded-2xl flex items-center justify-center', getColorStyle(site.color, 'bg')]">
+              <div :class="['w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg', getColorStyle(site.color, 'bg')]">
                 <span :class="['text-2xl font-bold', getColorStyle(site.color, 'text')]">{{ site.letter }}</span>
               </div>
             </div>
@@ -298,7 +298,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">即</span>
               </div>
             </div>
@@ -314,7 +314,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">即</span>
               </div>
             </div>
@@ -330,7 +330,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">飞</span>
               </div>
             </div>
@@ -341,7 +341,7 @@ const filteredTools = computed(() => {
 
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">象</span>
               </div>
             </div>
@@ -357,7 +357,7 @@ const filteredTools = computed(() => {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-purple-500 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg">
                 <span class="text-white text-2xl font-bold">千</span>
               </div>
             </div>
