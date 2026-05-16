@@ -208,7 +208,7 @@ const filteredTools = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gradient-to-br from-purple-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
+  <div class="flex min-h-screen">
     <SideNav />
     
     <div class="flex-1 lg:ml-64 px-4 py-8">
