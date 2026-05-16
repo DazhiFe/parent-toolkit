@@ -140,10 +140,10 @@ const progress = computed(() => {
   return ((totalTime - timeLeft.value) / totalTime) * 100
 })
 
-const startTimer = () => {
+const startTimer = (taskName = null) => {
   if (isRunning.value) return
   
-  if (timerType.value === 'work' && !currentTask.value.trim()) {
+  if (timerType.value === 'work' && !taskName && !currentTask.value.trim()) {
     showToast('请先输入任务名称')
     return
   }
@@ -269,20 +269,34 @@ const playNotificationSound = () => {
 }
 
 const handleTaskInput = () => {
-  if (currentTask.value.trim() && !isRunning.value) {
-    const taskName = currentTask.value.trim()
-    
-    taskHistory.value.unshift({
-      task: taskName,
-      completedAt: null,
-      duration: '25分钟',
-      status: 'in-progress'
-    })
-    
-    currentTask.value = ''
-    saveToStorage()
-    startTimer()
+  const taskName = currentTask.value.trim()
+  
+  if (!taskName) {
+    showToast('请先输入任务名称')
+    return
   }
+  
+  if (isRunning.value) {
+    showToast('计时器正在运行中')
+    return
+  }
+  
+  // 如果当前不是work模式，自动切换到work模式
+  if (timerType.value !== 'work') {
+    setTimerType('work')
+  }
+  
+  // 创建任务记录
+  taskHistory.value.unshift({
+    task: taskName,
+    completedAt: null,
+    duration: '25分钟',
+    status: 'in-progress'
+  })
+  
+  currentTask.value = ''
+  saveToStorage()
+  startTimer(taskName)
 }
 
 const clearTaskHistory = () => {
