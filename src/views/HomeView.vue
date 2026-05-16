@@ -4,7 +4,7 @@ import SideNav from '../components/SideNav.vue'
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gradient-to-br from-blue-100 via-white to-cyan-100 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
+  <div class="flex min-h-screen">
     <!-- 左侧导航 -->
     <SideNav />
     
