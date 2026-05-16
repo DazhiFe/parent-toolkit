@@ -27,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pt-16 overflow-x-hidden">
+  <div class="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-16 overflow-x-hidden">
     <AppHeader />
     <main class="flex-grow">
       <RouterView />
