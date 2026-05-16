@@ -20,7 +20,7 @@ const isActiveRoute = (path) => {
 </script>
 
 <template>
-  <header class="bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 shadow-sm fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-opacity-90">
+  <header class="bg-gradient-to-r from-blue-50 via-white to-cyan-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 shadow-sm fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-opacity-90">
     <nav class="w-full pl-4 pr-2 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-8">
         <RouterLink to="/" class="text-xl font-bold text-primary-600 dark:text-primary-400 flex items-center">
