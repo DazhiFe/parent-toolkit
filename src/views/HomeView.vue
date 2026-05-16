@@ -161,35 +161,26 @@ import SideNav from '../components/SideNav.vue'
             <RouterLink to="/pdf-to-ppt" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
           
+        </div>
+      </section>
+
+      <!-- 格式转换 -->
+      <section id="convert-tools" class="mb-12">
+        <h2 class="text-2xl font-bold mb-6 dark:text-white">格式转换</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <div class="mb-4 flex items-center justify-center h-24 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">PDF转Word</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">将PDF文件转换为Word文档</p>
-            <RouterLink to="/pdf-to-word" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">千问格式转换</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">AI文件格式转换工具，支持PDF、图片互转</p>
+            <a href="https://www.tongyi.com/discover/convert" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
           </div>
         </div>
       </section>
 
-      <!-- Office格式工具 -->
-      <section id="office-tools" class="mb-12">
-        <h2 class="text-2xl font-bold mb-6 dark:text-white">Office格式工具</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">Word转PDF</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">将Word文档转换为PDF文件</p>
-            <RouterLink to="/word-to-pdf" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 </template>

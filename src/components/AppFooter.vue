@@ -26,6 +26,7 @@ const hasSideNav = computed(() => {
         </div>
         <div>
           <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+          <p class="text-gray-300 dark:text-gray-400">公众号：大志笔记</p>
           <p class="text-gray-300 dark:text-gray-400">邮箱：2238662003@qq.com</p>
           <!-- <div class="mt-4 flex space-x-4">
             <a href="#" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">
