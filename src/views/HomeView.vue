@@ -43,14 +43,14 @@ import SideNav from '../components/SideNav.vue'
           </div>
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            <div class="mb-4 flex items-center justify-center h-24 bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">学而思</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">优质的在线教育平台和资源</p>
-            <a href="https://www.xueersi.com/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">国家中小学智慧教育平台</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">教育部主办，覆盖小学到高中的优质课程资源</p>
+            <a href="https://basic.smartedu.cn/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
           </div>
           
           <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
