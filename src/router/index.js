@@ -69,6 +69,11 @@ const router = createRouter({
       component: () => import('../views/ImageCompressView.vue')
     },
     {
+      path: '/image-convert',
+      name: 'image-convert',
+      component: () => import('../views/ImageConvertView.vue')
+    },
+    {
       path: '/video-download',
       name: 'video-download',
       component: () => import('../views/VideoDownloadView.vue')

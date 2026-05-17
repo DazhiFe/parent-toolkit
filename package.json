@@ -17,6 +17,7 @@
     "docx-preview": "^0.3.7",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^5.5.207",
     "pinia": "^2.1.6",

@@ -143,6 +143,17 @@ import SideNav from '../components/SideNav.vue'
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">高效压缩图片，保持视觉质量平衡</p>
             <RouterLink to="/image-compress" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
+
+          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div class="mb-4 flex items-center justify-center h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">图片转换</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">支持 JPG、PNG、GIF、BMP、WebP、TIFF 格式互转</p>
+            <RouterLink to="/image-convert" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+          </div>
         </div>
       </section>
 
