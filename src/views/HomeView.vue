@@ -154,6 +154,17 @@ import SideNav from '../components/SideNav.vue'
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">支持 JPG、PNG、GIF、BMP、WebP、TIFF 格式互转</p>
             <RouterLink to="/image-convert" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
+
+          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div class="mb-4 flex items-center justify-center h-24 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">图片水印</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">为图片添加文字或图片水印，支持批量处理</p>
+            <RouterLink to="/image-watermark" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+          </div>
         </div>
       </section>
 

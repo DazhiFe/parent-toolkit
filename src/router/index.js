@@ -74,6 +74,11 @@ const router = createRouter({
       component: () => import('../views/ImageConvertView.vue')
     },
     {
+      path: '/image-watermark',
+      name: 'image-watermark',
+      component: () => import('../views/ImageWatermarkView.vue')
+    },
+    {
       path: '/video-download',
       name: 'video-download',
       component: () => import('../views/VideoDownloadView.vue')
