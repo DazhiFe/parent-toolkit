@@ -79,11 +79,6 @@ const router = createRouter({
       component: () => import('../views/ImageWatermarkView.vue')
     },
     {
-      path: '/id-photo',
-      name: 'id-photo',
-      component: () => import('../views/IdPhotoView.vue')
-    },
-    {
       path: '/video-download',
       name: 'video-download',
       component: () => import('../views/VideoDownloadView.vue')

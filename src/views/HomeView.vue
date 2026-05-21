@@ -166,16 +166,6 @@ import SideNav from '../components/SideNav.vue'
             <RouterLink to="/image-watermark" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
 
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">证件照制作</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">免费换底色、调尺寸、A4排版打印</p>
-            <RouterLink to="/id-photo" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
-          </div>
         </div>
       </section>
 
