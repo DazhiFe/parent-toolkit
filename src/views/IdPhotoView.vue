@@ -95,7 +95,7 @@ const removeBackground = async () => {
       img.src = originalUrl.value
     })
 
-    const maxProcessSize = 1500
+    const maxProcessSize = 1200
     let processW = img.width
     let processH = img.height
     const scale = Math.min(1, maxProcessSize / Math.max(processW, processH))
@@ -113,45 +113,20 @@ const removeBackground = async () => {
     const width = processW
     const height = processH
 
-    const bgColor = detectBgColor(data, width, height)
+    const bgColors = detectBgColors(data, width, height)
     const mask = new Uint8Array(width * height)
     mask.fill(1)
 
-    const tol = tolerance.value * 3
-    const queue = []
-    let qStart = 0
+    const tol = tolerance.value
 
-    for (let x = 0; x < width; x++) {
-      queue.push(x)
-      queue.push((height - 1) * width + x)
-    }
-    for (let y = 1; y < height - 1; y++) {
-      queue.push(y * width)
-      queue.push(y * width + width - 1)
-    }
+    floodFillFromEdges(mask, data, bgColors, tol, width, height)
 
-    while (qStart < queue.length) {
-      const idx = queue[qStart++]
-      if (mask[idx] === 0) continue
+    fillInteriorHoles(mask, data, bgColors, tol, width, height)
 
-      const pi = idx * 4
-      const dr = data[pi] - bgColor.r
-      const dg = data[pi + 1] - bgColor.g
-      const db = data[pi + 2] - bgColor.b
-      const dist = Math.sqrt(dr * dr + dg * dg + db * db)
+    morphologicalClean(mask, width, height)
 
-      if (dist <= tol) {
-        mask[idx] = 0
-        const x = idx % width
-        const y = Math.floor(idx / width)
-        if (x > 0 && mask[idx - 1] === 1) queue.push(idx - 1)
-        if (x < width - 1 && mask[idx + 1] === 1) queue.push(idx + 1)
-        if (y > 0 && mask[idx - width] === 1) queue.push(idx - width)
-        if (y < height - 1 && mask[idx + width] === 1) queue.push(idx + width)
-      }
-    }
+    const smoothed = gaussianSmoothMask(mask, width, height)
 
-    const smoothed = smoothMask(mask, width, height)
     maskData.value = { mask: smoothed, width, height, scale: 1 / scale }
     bgRemoved.value = true
 
@@ -164,70 +139,303 @@ const removeBackground = async () => {
   }
 }
 
-const detectBgColor = (data, width, height) => {
-  let r = 0, g = 0, b = 0, count = 0
-  const sampleEdge = (idx) => {
-    const pi = idx * 4
-    r += data[pi]
-    g += data[pi + 1]
-    b += data[pi + 2]
-    count++
-  }
-
-  for (let x = 0; x < width; x++) {
-    sampleEdge(x)
-    sampleEdge((height - 1) * width + x)
-  }
-  for (let y = 1; y < height - 1; y++) {
-    sampleEdge(y * width)
-    sampleEdge(y * width + width - 1)
-  }
-
-  return { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) }
+const colorDistance = (r1, g1, b1, r2, g2, b2) => {
+  const rmean = (r1 + r2) / 2
+  const dr = r1 - r2
+  const dg = g1 - g2
+  const db = b1 - b2
+  return Math.sqrt(
+    (2 + rmean / 256) * dr * dr +
+    4 * dg * dg +
+    (2 + (255 - rmean) / 256) * db * db
+  )
 }
 
-const smoothMask = (mask, width, height) => {
+const detectBgColors = (data, width, height) => {
+  const colorBuckets = new Map()
+  const quantize = 16
+
+  const sampleRegion = (startX, startY, endX, endY) => {
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        const pi = (y * width + x) * 4
+        const r = Math.round(data[pi] / quantize) * quantize
+        const g = Math.round(data[pi + 1] / quantize) * quantize
+        const b = Math.round(data[pi + 2] / quantize) * quantize
+        const key = `${r},${g},${b}`
+        colorBuckets.set(key, (colorBuckets.get(key) || 0) + 1)
+      }
+    }
+  }
+
+  const edgeThickness = Math.max(3, Math.min(15, Math.floor(Math.min(width, height) * 0.03)))
+
+  sampleRegion(0, 0, width, edgeThickness)
+  sampleRegion(0, height - edgeThickness, width, height)
+  sampleRegion(0, edgeThickness, edgeThickness, height - edgeThickness)
+  sampleRegion(width - edgeThickness, edgeThickness, width, height - edgeThickness)
+
+  const sorted = [...colorBuckets.entries()].sort((a, b) => b[1] - a[1])
+
+  const results = []
+  const minCount = sorted[0][1] * 0.1
+
+  for (const [key, count] of sorted) {
+    if (count < minCount) break
+    const [r, g, b] = key.split(',').map(Number)
+    let isSimilar = false
+    for (const existing of results) {
+      if (colorDistance(r, g, b, existing.r, existing.g, existing.b) < 40) {
+        existing.r = Math.round((existing.r * existing.count + r * count) / (existing.count + count))
+        existing.g = Math.round((existing.g * existing.count + g * count) / (existing.count + count))
+        existing.b = Math.round((existing.b * existing.count + b * count) / (existing.count + count))
+        existing.count += count
+        isSimilar = true
+        break
+      }
+    }
+    if (!isSimilar) {
+      results.push({ r, g, b, count })
+    }
+  }
+
+  results.sort((a, b) => b.count - a.count)
+  return results.slice(0, 3)
+}
+
+const floodFillFromEdges = (mask, data, bgColors, tol, width, height) => {
+  const visited = new Uint8Array(width * height)
+  const queue = []
+  let qStart = 0
+
+  for (let x = 0; x < width; x++) {
+    queue.push(x)
+    queue.push((height - 1) * width + x)
+  }
+  for (let y = 1; y < height - 1; y++) {
+    queue.push(y * width)
+    queue.push(y * width + width - 1)
+  }
+
+  const maxDist = tol * 2.5
+
+  while (qStart < queue.length) {
+    const idx = queue[qStart++]
+    if (visited[idx]) continue
+    visited[idx] = 1
+
+    const pi = idx * 4
+    const pr = data[pi]
+    const pg = data[pi + 1]
+    const pb = data[pi + 2]
+
+    let minDist = Infinity
+    for (const bg of bgColors) {
+      const dist = colorDistance(pr, pg, pb, bg.r, bg.g, bg.b)
+      if (dist < minDist) minDist = dist
+    }
+
+    if (minDist <= maxDist) {
+      mask[idx] = 0
+      const x = idx % width
+      const y = Math.floor(idx / width)
+      if (x > 0 && !visited[idx - 1]) queue.push(idx - 1)
+      if (x < width - 1 && !visited[idx + 1]) queue.push(idx + 1)
+      if (y > 0 && !visited[idx - width]) queue.push(idx - width)
+      if (y < height - 1 && !visited[idx + width]) queue.push(idx + width)
+    }
+  }
+}
+
+const fillInteriorHoles = (mask, data, bgColors, tol, width, height) => {
+  const maxDist = tol * 2.0
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x
+      if (mask[idx] === 0) continue
+
+      const neighbors = [
+        mask[(y - 1) * width + x],
+        mask[(y + 1) * width + x],
+        mask[y * width + x - 1],
+        mask[y * width + x + 1]
+      ]
+      const bgNeighborCount = neighbors.filter(n => n === 0).length
+      if (bgNeighborCount < 3) continue
+
+      const pi = idx * 4
+      let minDist = Infinity
+      for (const bg of bgColors) {
+        const dist = colorDistance(data[pi], data[pi + 1], data[pi + 2], bg.r, bg.g, bg.b)
+        if (dist < minDist) minDist = dist
+      }
+
+      if (minDist <= maxDist * 0.8) {
+        mask[idx] = 0
+      }
+    }
+  }
+}
+
+const morphologicalClean = (mask, width, height) => {
+  const eroded = new Uint8Array(width * height)
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x
+      if (mask[idx] === 1) {
+        const allFg =
+          mask[(y - 1) * width + x] === 1 &&
+          mask[(y + 1) * width + x] === 1 &&
+          mask[y * width + x - 1] === 1 &&
+          mask[y * width + x + 1] === 1
+        eroded[idx] = allFg ? 1 : 0
+      }
+    }
+  }
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x
+      if (eroded[idx] === 1) {
+        mask[(y - 1) * width + x] = 1
+        mask[(y + 1) * width + x] = 1
+        mask[y * width + x - 1] = 1
+        mask[y * width + x + 1] = 1
+        mask[idx] = 1
+      }
+    }
+  }
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x
+      if (mask[idx] === 0) {
+        const neighbors = [
+          mask[(y - 1) * width + x],
+          mask[(y + 1) * width + x],
+          mask[y * width + x - 1],
+          mask[y * width + x + 1]
+        ]
+        const fgCount = neighbors.filter(n => n === 1).length
+        if (fgCount <= 1) {
+          mask[idx] = 1
+        }
+      }
+    }
+  }
+}
+
+const gaussianSmoothMask = (mask, width, height) => {
+  const temp = new Float32Array(width * height)
   const result = new Float32Array(width * height)
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = y * width + x
       if (mask[idx] === 1) {
-        result[idx] = 1.0
-        continue
-      }
-
-      let nearFg = false
-      const radius = 2
-      for (let dy = -radius; dy <= radius && !nearFg; dy++) {
-        for (let dx = -radius; dx <= radius && !nearFg; dx++) {
-          const ny = y + dy
-          const nx = x + dx
-          if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-            if (mask[ny * width + nx] === 1) nearFg = true
-          }
-        }
-      }
-
-      if (nearFg) {
-        let fgCount = 0
-        let totalCount = 0
-        for (let dy = -radius; dy <= radius; dy++) {
-          for (let dx = -radius; dx <= radius; dx++) {
-            const ny = y + dy
-            const nx = x + dx
-            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-              totalCount++
-              if (mask[ny * width + nx] === 1) fgCount++
-            }
-          }
-        }
-        result[idx] = fgCount / totalCount
+        temp[idx] = 1.0
       } else {
-        result[idx] = 0.0
+        temp[idx] = 0.0
       }
     }
   }
+
+  const blurPass = (src, dst, w, h, horizontal) => {
+    const kernel = [0.05, 0.1, 0.2, 0.3, 0.2, 0.1, 0.05]
+    const kSize = kernel.length
+    const kHalf = Math.floor(kSize / 2)
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let sum = 0
+        let weightSum = 0
+        for (let k = 0; k < kSize; k++) {
+          const offset = k - kHalf
+          let nx = x, ny = y
+          if (horizontal) nx = x + offset
+          else ny = y + offset
+
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            sum += src[ny * w + nx] * kernel[k]
+            weightSum += kernel[k]
+          }
+        }
+        dst[y * w + x] = sum / weightSum
+      }
+    }
+  }
+
+  blurPass(temp, result, width, height, true)
+  blurPass(result, temp, width, height, false)
+  blurPass(temp, result, width, height, true)
+  blurPass(result, temp, width, height, false)
+
+  for (let i = 0; i < temp.length; i++) {
+    result[i] = temp[i]
+  }
+
+  const edgeDist = computeEdgeDistance(mask, width, height)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x
+      const d = edgeDist[idx]
+      if (mask[idx] === 0 && d < 3) {
+        const t = d / 3
+        result[idx] = result[idx] * (1 - t) * (1 - t)
+      } else if (mask[idx] === 1 && d < 2) {
+        const t = d / 2
+        result[idx] = 1 - (1 - result[idx]) * t * t
+      }
+    }
+  }
+
+  for (let i = 0; i < result.length; i++) {
+    result[i] = Math.max(0, Math.min(1, result[i]))
+  }
+
   return result
+}
+
+const computeEdgeDistance = (mask, width, height) => {
+  const dist = new Float32Array(width * height)
+  dist.fill(999)
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x
+      const isEdge =
+        (mask[idx] === 0 && (
+          (x > 0 && mask[idx - 1] === 1) ||
+          (x < width - 1 && mask[idx + 1] === 1) ||
+          (y > 0 && mask[idx - width] === 1) ||
+          (y < height - 1 && mask[idx + width] === 1)
+        )) ||
+        (mask[idx] === 1 && (
+          (x > 0 && mask[idx - 1] === 0) ||
+          (x < width - 1 && mask[idx + 1] === 0) ||
+          (y > 0 && mask[idx - width] === 0) ||
+          (y < height - 1 && mask[idx + width] === 0)
+        ))
+
+      if (isEdge) dist[idx] = 0
+    }
+  }
+
+  for (let y = 1; y < height; y++) {
+    for (let x = 1; x < width; x++) {
+      const idx = y * width + x
+      dist[idx] = Math.min(dist[idx], dist[(y - 1) * width + x] + 1, dist[y * width + x - 1] + 1)
+    }
+  }
+  for (let y = height - 2; y >= 0; y--) {
+    for (let x = width - 2; x >= 0; x--) {
+      const idx = y * width + x
+      dist[idx] = Math.min(dist[idx], dist[(y + 1) * width + x] + 1, dist[y * width + x + 1] + 1)
+    }
+  }
+
+  return dist
 }
 
 const renderPreview = () => {
@@ -598,7 +806,7 @@ onUnmounted(() => {
             </button>
             <div v-if="bgRemoved" class="mt-4">
               <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">容差: {{ tolerance }}</label>
-              <input type="range" v-model="tolerance" min="10" max="80" @change="onToleranceChange" class="w-full">
+              <input type="range" v-model="tolerance" min="10" max="60" @change="onToleranceChange" class="w-full">
               <p class="text-xs text-gray-400 mt-1">容差越大去除越多，越小保留越多</p>
             </div>
           </div>
