@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { remove, newSession } from '@bunnio/rembg-web'
 
 const originalImage = ref(null)
 const originalUrl = ref('')
@@ -8,8 +9,8 @@ const originalHeight = ref(0)
 
 const isRemovingBg = ref(false)
 const bgRemoved = ref(false)
-const maskData = ref(null)
-const tolerance = ref(35)
+const removedBgUrl = ref('')
+const removeProgress = ref({ step: '', progress: 0, message: '' })
 
 const selectedBgColor = ref('#438EDB')
 const selectedSize = ref('one-inch')
@@ -24,8 +25,9 @@ const dragStartY = ref(0)
 const dragStartOffsetX = ref(0)
 const dragStartOffsetY = ref(0)
 
-const showPrintLayout = ref(false)
 const isGenerating = ref(false)
+const session = ref(null)
+const sessionReady = ref(false)
 
 const SIZE_PRESETS = {
   'small-one-inch': { label: '小一寸', w: 260, h: 378, mmW: 22, mmH: 32, cols: 5, rows: 3 },
@@ -44,8 +46,16 @@ const BG_COLORS = [
 ]
 
 const currentSize = computed(() => SIZE_PRESETS[selectedSize.value])
-
 const previewCanvas = ref(null)
+
+const initSession = async () => {
+  try {
+    session.value = newSession('u2net_human_seg')
+    sessionReady.value = true
+  } catch (e) {
+    console.error('模型初始化失败:', e)
+  }
+}
 
 const handleFileSelect = (event) => {
   const file = event.target.files[0]
@@ -60,10 +70,13 @@ const handleFileSelect = (event) => {
     return
   }
 
+  if (removedBgUrl.value) URL.revokeObjectURL(removedBgUrl.value)
+
   originalImage.value = file
   originalUrl.value = URL.createObjectURL(file)
   bgRemoved.value = false
-  maskData.value = null
+  removedBgUrl.value = ''
+  removeProgress.value = { step: '', progress: 0, message: '' }
   offsetX.value = 0
   offsetY.value = 0
   zoom.value = 100
@@ -80,366 +93,42 @@ const handleFileSelect = (event) => {
 }
 
 const removeBackground = async () => {
-  if (!originalUrl.value) return
+  if (!originalImage.value) return
 
   isRemovingBg.value = true
+  removeProgress.value = { step: 'downloading', progress: 0, message: '正在加载AI模型...' }
 
   await new Promise(resolve => setTimeout(resolve, 50))
 
   try {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    await new Promise((resolve, reject) => {
-      img.onload = resolve
-      img.onerror = reject
-      img.src = originalUrl.value
+    if (!sessionReady.value) {
+      await initSession()
+    }
+
+    const resultBlob = await remove(originalImage.value, {
+      session: session.value,
+      postProcessMask: true,
+      onProgress: (info) => {
+        removeProgress.value = info
+      }
     })
 
-    const maxProcessSize = 1200
-    let processW = img.width
-    let processH = img.height
-    const scale = Math.min(1, maxProcessSize / Math.max(processW, processH))
-    processW = Math.round(processW * scale)
-    processH = Math.round(processH * scale)
-
-    const canvas = document.createElement('canvas')
-    canvas.width = processW
-    canvas.height = processH
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(img, 0, 0, processW, processH)
-
-    const imageData = ctx.getImageData(0, 0, processW, processH)
-    const data = imageData.data
-    const width = processW
-    const height = processH
-
-    const bgColors = detectBgColors(data, width, height)
-    const mask = new Uint8Array(width * height)
-    mask.fill(1)
-
-    const tol = tolerance.value
-
-    floodFillFromEdges(mask, data, bgColors, tol, width, height)
-
-    fillInteriorHoles(mask, data, bgColors, tol, width, height)
-
-    morphologicalClean(mask, width, height)
-
-    const smoothed = gaussianSmoothMask(mask, width, height)
-
-    maskData.value = { mask: smoothed, width, height, scale: 1 / scale }
+    removedBgUrl.value = URL.createObjectURL(resultBlob)
     bgRemoved.value = true
 
-    renderPreview()
+    nextTick(() => {
+      renderPreview()
+    })
   } catch (error) {
-    console.error('背景移除失败:', error)
-    alert('背景移除失败，请重试')
+    console.error('AI抠图失败:', error)
+    alert('AI抠图失败: ' + (error.message || '请检查网络连接或尝试刷新页面'))
   } finally {
     isRemovingBg.value = false
   }
 }
 
-const colorDistance = (r1, g1, b1, r2, g2, b2) => {
-  const rmean = (r1 + r2) / 2
-  const dr = r1 - r2
-  const dg = g1 - g2
-  const db = b1 - b2
-  return Math.sqrt(
-    (2 + rmean / 256) * dr * dr +
-    4 * dg * dg +
-    (2 + (255 - rmean) / 256) * db * db
-  )
-}
-
-const detectBgColors = (data, width, height) => {
-  const colorBuckets = new Map()
-  const quantize = 16
-
-  const sampleRegion = (startX, startY, endX, endY) => {
-    for (let y = startY; y < endY; y++) {
-      for (let x = startX; x < endX; x++) {
-        const pi = (y * width + x) * 4
-        const r = Math.round(data[pi] / quantize) * quantize
-        const g = Math.round(data[pi + 1] / quantize) * quantize
-        const b = Math.round(data[pi + 2] / quantize) * quantize
-        const key = `${r},${g},${b}`
-        colorBuckets.set(key, (colorBuckets.get(key) || 0) + 1)
-      }
-    }
-  }
-
-  const edgeThickness = Math.max(3, Math.min(15, Math.floor(Math.min(width, height) * 0.03)))
-
-  sampleRegion(0, 0, width, edgeThickness)
-  sampleRegion(0, height - edgeThickness, width, height)
-  sampleRegion(0, edgeThickness, edgeThickness, height - edgeThickness)
-  sampleRegion(width - edgeThickness, edgeThickness, width, height - edgeThickness)
-
-  const sorted = [...colorBuckets.entries()].sort((a, b) => b[1] - a[1])
-
-  const results = []
-  const minCount = sorted[0][1] * 0.1
-
-  for (const [key, count] of sorted) {
-    if (count < minCount) break
-    const [r, g, b] = key.split(',').map(Number)
-    let isSimilar = false
-    for (const existing of results) {
-      if (colorDistance(r, g, b, existing.r, existing.g, existing.b) < 40) {
-        existing.r = Math.round((existing.r * existing.count + r * count) / (existing.count + count))
-        existing.g = Math.round((existing.g * existing.count + g * count) / (existing.count + count))
-        existing.b = Math.round((existing.b * existing.count + b * count) / (existing.count + count))
-        existing.count += count
-        isSimilar = true
-        break
-      }
-    }
-    if (!isSimilar) {
-      results.push({ r, g, b, count })
-    }
-  }
-
-  results.sort((a, b) => b.count - a.count)
-  return results.slice(0, 3)
-}
-
-const floodFillFromEdges = (mask, data, bgColors, tol, width, height) => {
-  const visited = new Uint8Array(width * height)
-  const queue = []
-  let qStart = 0
-
-  for (let x = 0; x < width; x++) {
-    queue.push(x)
-    queue.push((height - 1) * width + x)
-  }
-  for (let y = 1; y < height - 1; y++) {
-    queue.push(y * width)
-    queue.push(y * width + width - 1)
-  }
-
-  const maxDist = tol * 2.5
-
-  while (qStart < queue.length) {
-    const idx = queue[qStart++]
-    if (visited[idx]) continue
-    visited[idx] = 1
-
-    const pi = idx * 4
-    const pr = data[pi]
-    const pg = data[pi + 1]
-    const pb = data[pi + 2]
-
-    let minDist = Infinity
-    for (const bg of bgColors) {
-      const dist = colorDistance(pr, pg, pb, bg.r, bg.g, bg.b)
-      if (dist < minDist) minDist = dist
-    }
-
-    if (minDist <= maxDist) {
-      mask[idx] = 0
-      const x = idx % width
-      const y = Math.floor(idx / width)
-      if (x > 0 && !visited[idx - 1]) queue.push(idx - 1)
-      if (x < width - 1 && !visited[idx + 1]) queue.push(idx + 1)
-      if (y > 0 && !visited[idx - width]) queue.push(idx - width)
-      if (y < height - 1 && !visited[idx + width]) queue.push(idx + width)
-    }
-  }
-}
-
-const fillInteriorHoles = (mask, data, bgColors, tol, width, height) => {
-  const maxDist = tol * 2.0
-
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x
-      if (mask[idx] === 0) continue
-
-      const neighbors = [
-        mask[(y - 1) * width + x],
-        mask[(y + 1) * width + x],
-        mask[y * width + x - 1],
-        mask[y * width + x + 1]
-      ]
-      const bgNeighborCount = neighbors.filter(n => n === 0).length
-      if (bgNeighborCount < 3) continue
-
-      const pi = idx * 4
-      let minDist = Infinity
-      for (const bg of bgColors) {
-        const dist = colorDistance(data[pi], data[pi + 1], data[pi + 2], bg.r, bg.g, bg.b)
-        if (dist < minDist) minDist = dist
-      }
-
-      if (minDist <= maxDist * 0.8) {
-        mask[idx] = 0
-      }
-    }
-  }
-}
-
-const morphologicalClean = (mask, width, height) => {
-  const eroded = new Uint8Array(width * height)
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x
-      if (mask[idx] === 1) {
-        const allFg =
-          mask[(y - 1) * width + x] === 1 &&
-          mask[(y + 1) * width + x] === 1 &&
-          mask[y * width + x - 1] === 1 &&
-          mask[y * width + x + 1] === 1
-        eroded[idx] = allFg ? 1 : 0
-      }
-    }
-  }
-
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x
-      if (eroded[idx] === 1) {
-        mask[(y - 1) * width + x] = 1
-        mask[(y + 1) * width + x] = 1
-        mask[y * width + x - 1] = 1
-        mask[y * width + x + 1] = 1
-        mask[idx] = 1
-      }
-    }
-  }
-
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x
-      if (mask[idx] === 0) {
-        const neighbors = [
-          mask[(y - 1) * width + x],
-          mask[(y + 1) * width + x],
-          mask[y * width + x - 1],
-          mask[y * width + x + 1]
-        ]
-        const fgCount = neighbors.filter(n => n === 1).length
-        if (fgCount <= 1) {
-          mask[idx] = 1
-        }
-      }
-    }
-  }
-}
-
-const gaussianSmoothMask = (mask, width, height) => {
-  const temp = new Float32Array(width * height)
-  const result = new Float32Array(width * height)
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x
-      if (mask[idx] === 1) {
-        temp[idx] = 1.0
-      } else {
-        temp[idx] = 0.0
-      }
-    }
-  }
-
-  const blurPass = (src, dst, w, h, horizontal) => {
-    const kernel = [0.05, 0.1, 0.2, 0.3, 0.2, 0.1, 0.05]
-    const kSize = kernel.length
-    const kHalf = Math.floor(kSize / 2)
-
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        let sum = 0
-        let weightSum = 0
-        for (let k = 0; k < kSize; k++) {
-          const offset = k - kHalf
-          let nx = x, ny = y
-          if (horizontal) nx = x + offset
-          else ny = y + offset
-
-          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-            sum += src[ny * w + nx] * kernel[k]
-            weightSum += kernel[k]
-          }
-        }
-        dst[y * w + x] = sum / weightSum
-      }
-    }
-  }
-
-  blurPass(temp, result, width, height, true)
-  blurPass(result, temp, width, height, false)
-  blurPass(temp, result, width, height, true)
-  blurPass(result, temp, width, height, false)
-
-  for (let i = 0; i < temp.length; i++) {
-    result[i] = temp[i]
-  }
-
-  const edgeDist = computeEdgeDistance(mask, width, height)
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x
-      const d = edgeDist[idx]
-      if (mask[idx] === 0 && d < 3) {
-        const t = d / 3
-        result[idx] = result[idx] * (1 - t) * (1 - t)
-      } else if (mask[idx] === 1 && d < 2) {
-        const t = d / 2
-        result[idx] = 1 - (1 - result[idx]) * t * t
-      }
-    }
-  }
-
-  for (let i = 0; i < result.length; i++) {
-    result[i] = Math.max(0, Math.min(1, result[i]))
-  }
-
-  return result
-}
-
-const computeEdgeDistance = (mask, width, height) => {
-  const dist = new Float32Array(width * height)
-  dist.fill(999)
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x
-      const isEdge =
-        (mask[idx] === 0 && (
-          (x > 0 && mask[idx - 1] === 1) ||
-          (x < width - 1 && mask[idx + 1] === 1) ||
-          (y > 0 && mask[idx - width] === 1) ||
-          (y < height - 1 && mask[idx + width] === 1)
-        )) ||
-        (mask[idx] === 1 && (
-          (x > 0 && mask[idx - 1] === 0) ||
-          (x < width - 1 && mask[idx + 1] === 0) ||
-          (y > 0 && mask[idx - width] === 0) ||
-          (y < height - 1 && mask[idx + width] === 0)
-        ))
-
-      if (isEdge) dist[idx] = 0
-    }
-  }
-
-  for (let y = 1; y < height; y++) {
-    for (let x = 1; x < width; x++) {
-      const idx = y * width + x
-      dist[idx] = Math.min(dist[idx], dist[(y - 1) * width + x] + 1, dist[y * width + x - 1] + 1)
-    }
-  }
-  for (let y = height - 2; y >= 0; y--) {
-    for (let x = width - 2; x >= 0; x--) {
-      const idx = y * width + x
-      dist[idx] = Math.min(dist[idx], dist[(y + 1) * width + x] + 1, dist[y * width + x + 1] + 1)
-    }
-  }
-
-  return dist
-}
-
 const renderPreview = () => {
-  if (!originalUrl.value || !maskData.value) return
+  if (!removedBgUrl.value) return
 
   const canvas = previewCanvas.value
   if (!canvas) return
@@ -462,30 +151,14 @@ const renderPreview = () => {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.onload = () => {
-    const mask = maskData.value
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = mask.width
-    tempCanvas.height = mask.height
-    const tempCtx = tempCanvas.getContext('2d')
-    tempCtx.drawImage(img, 0, 0, mask.width, mask.height)
-    const imgData = tempCtx.getImageData(0, 0, mask.width, mask.height)
-    const pixels = imgData.data
-
-    for (let i = 0; i < mask.mask.length; i++) {
-      pixels[i * 4 + 3] = Math.round(mask.mask[i] * 255)
-    }
-
-    tempCtx.putImageData(imgData, 0, 0)
-
     const z = zoom.value / 100
-    const drawW = mask.width * z * mask.scale
-    const drawH = mask.height * z * mask.scale
+    const drawW = img.width * z
+    const drawH = img.height * z
     const drawX = (size.w - drawW) / 2 + offsetX.value
     const drawY = (size.h - drawH) / 2 + offsetY.value
-
-    ctx.drawImage(tempCanvas, drawX, drawY, drawW, drawH)
+    ctx.drawImage(img, drawX, drawY, drawW, drawH)
   }
-  img.src = originalUrl.value
+  img.src = removedBgUrl.value
 }
 
 const renderOriginalPreview = () => {
@@ -595,12 +268,6 @@ const onZoomChange = () => {
   }
 }
 
-const onToleranceChange = () => {
-  if (bgRemoved.value) {
-    removeBackground()
-  }
-}
-
 const generateFinalImage = (targetWidth, targetHeight) => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas')
@@ -621,31 +288,15 @@ const generateFinalImage = (targetWidth, targetHeight) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
-      const mask = maskData.value
-      const tempCanvas = document.createElement('canvas')
-      tempCanvas.width = mask.width
-      tempCanvas.height = mask.height
-      const tempCtx = tempCanvas.getContext('2d')
-      tempCtx.drawImage(img, 0, 0, mask.width, mask.height)
-      const imgData = tempCtx.getImageData(0, 0, mask.width, mask.height)
-      const pixels = imgData.data
-
-      for (let i = 0; i < mask.mask.length; i++) {
-        pixels[i * 4 + 3] = Math.round(mask.mask[i] * 255)
-      }
-
-      tempCtx.putImageData(imgData, 0, 0)
-
       const z = zoom.value / 100
-      const drawW = mask.width * z * mask.scale
-      const drawH = mask.height * z * mask.scale
+      const drawW = img.width * z
+      const drawH = img.height * z
       const drawX = (targetWidth - drawW) / 2 + offsetX.value * (targetWidth / currentSize.value.w)
       const drawY = (targetHeight - drawH) / 2 + offsetY.value * (targetHeight / currentSize.value.h)
-
-      ctx.drawImage(tempCanvas, drawX, drawY, drawW, drawH)
+      ctx.drawImage(img, drawX, drawY, drawW, drawH)
       resolve(canvas)
     }
-    img.src = originalUrl.value
+    img.src = removedBgUrl.value
   })
 }
 
@@ -703,7 +354,7 @@ const downloadPrintLayout = async () => {
 }
 
 const renderMiniPreview = (canvas) => {
-  if (!bgRemoved.value || !maskData.value) return
+  if (!bgRemoved.value || !removedBgUrl.value) return
   const size = currentSize.value
   canvas.width = size.w
   canvas.height = size.h
@@ -722,36 +373,25 @@ const renderMiniPreview = (canvas) => {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.onload = () => {
-    const mask = maskData.value
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = mask.width
-    tempCanvas.height = mask.height
-    const tempCtx = tempCanvas.getContext('2d')
-    tempCtx.drawImage(img, 0, 0, mask.width, mask.height)
-    const imgData = tempCtx.getImageData(0, 0, mask.width, mask.height)
-    const pixels = imgData.data
-    for (let i = 0; i < mask.mask.length; i++) {
-      pixels[i * 4 + 3] = Math.round(mask.mask[i] * 255)
-    }
-    tempCtx.putImageData(imgData, 0, 0)
     const z = zoom.value / 100
-    const drawW = mask.width * z * mask.scale
-    const drawH = mask.height * z * mask.scale
+    const drawW = img.width * z
+    const drawH = img.height * z
     const drawX = (size.w - drawW) / 2 + offsetX.value
     const drawY = (size.h - drawH) / 2 + offsetY.value
-    ctx.drawImage(tempCanvas, drawX, drawY, drawW, drawH)
+    ctx.drawImage(img, drawX, drawY, drawW, drawH)
   }
-  img.src = originalUrl.value
+  img.src = removedBgUrl.value
 }
 
 const clearAll = () => {
   if (originalUrl.value) URL.revokeObjectURL(originalUrl.value)
+  if (removedBgUrl.value) URL.revokeObjectURL(removedBgUrl.value)
   originalImage.value = null
   originalUrl.value = ''
+  removedBgUrl.value = ''
   originalWidth.value = 0
   originalHeight.value = 0
   bgRemoved.value = false
-  maskData.value = null
   offsetX.value = 0
   offsetY.value = 0
   zoom.value = 100
@@ -760,19 +400,21 @@ const clearAll = () => {
 onMounted(() => {
   window.addEventListener('mousemove', onCanvasMouseMove)
   window.addEventListener('mouseup', onCanvasMouseUp)
+  initSession()
 })
 
 onUnmounted(() => {
   window.removeEventListener('mousemove', onCanvasMouseMove)
   window.removeEventListener('mouseup', onCanvasMouseUp)
   if (originalUrl.value) URL.revokeObjectURL(originalUrl.value)
+  if (removedBgUrl.value) URL.revokeObjectURL(removedBgUrl.value)
 })
 </script>
 
 <template>
   <div class="max-w-6xl mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold mb-2 dark:text-white">证件照制作</h1>
-    <p class="text-gray-600 dark:text-gray-400 mb-8">免费在线制作证件照，支持换底色、调尺寸、排版打印</p>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">AI智能抠图，免费换底色、调尺寸、排版打印</p>
 
     <!-- 上传区域 -->
     <div v-if="!originalUrl" class="mb-8">
@@ -796,19 +438,24 @@ onUnmounted(() => {
         <div class="lg:w-80 flex-shrink-0 space-y-4">
           <!-- 抠图设置 -->
           <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md">
-            <h3 class="font-semibold text-gray-800 dark:text-white mb-4">智能抠图</h3>
+            <h3 class="font-semibold text-gray-800 dark:text-white mb-4">AI智能抠图</h3>
             <button
               @click="removeBackground"
               :disabled="isRemovingBg"
               class="w-full py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-600 disabled:opacity-50 transition-all"
             >
-              {{ isRemovingBg ? '抠图中...' : bgRemoved ? '重新抠图' : '一键抠图' }}
+              {{ isRemovingBg ? 'AI抠图中...' : bgRemoved ? '重新抠图' : '一键AI抠图' }}
             </button>
-            <div v-if="bgRemoved" class="mt-4">
-              <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">容差: {{ tolerance }}</label>
-              <input type="range" v-model="tolerance" min="10" max="60" @change="onToleranceChange" class="w-full">
-              <p class="text-xs text-gray-400 mt-1">容差越大去除越多，越小保留越多</p>
+            <div v-if="isRemovingBg" class="mt-4">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ removeProgress.message }}</span>
+                <span class="text-sm text-primary-600 font-medium">{{ removeProgress.progress }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="bg-primary-500 h-2 rounded-full transition-all duration-300" :style="{ width: removeProgress.progress + '%' }"></div>
+              </div>
             </div>
+            <p v-if="!sessionReady && !isRemovingBg" class="text-xs text-gray-400 mt-2">首次使用需下载AI模型（约5MB）</p>
           </div>
 
           <!-- 背景颜色 -->
@@ -934,12 +581,13 @@ onUnmounted(() => {
                   @touchend="onCanvasTouchEnd"
                 ></canvas>
                 <div v-if="!bgRemoved && originalUrl" class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                  <p class="text-white text-sm">请先点击"一键抠图"</p>
+                  <p class="text-white text-sm">请先点击"一键AI抠图"</p>
                 </div>
                 <div v-if="isRemovingBg" class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
                   <div class="text-center">
                     <div class="w-10 h-10 border-3 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p class="text-white text-sm">智能抠图中...</p>
+                    <p class="text-white text-sm">{{ removeProgress.message }}</p>
+                    <p class="text-white text-xs mt-1">{{ removeProgress.progress }}%</p>
                   </div>
                 </div>
               </div>
@@ -999,8 +647,8 @@ onUnmounted(() => {
           <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
             <span class="text-primary-600 dark:text-primary-400 font-bold">2</span>
           </div>
-          <h4 class="font-medium text-gray-800 dark:text-white mb-1">抠图换底</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">一键智能抠图，选择需要的背景颜色</p>
+          <h4 class="font-medium text-gray-800 dark:text-white mb-1">AI抠图换底</h4>
+          <p class="text-sm text-gray-500 dark:text-gray-400">AI自动识别人像并抠图，选择需要的背景颜色</p>
         </div>
         <div class="text-center">
           <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
