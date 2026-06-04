@@ -44,6 +44,11 @@ const router = createRouter({
       component: () => import('../views/MathWithin100View.vue')
     },
     {
+      path: '/hundred-chart',
+      name: 'hundred-chart',
+      component: () => import('../views/HundredChartView.vue')
+    },
+    {
       path: '/ancient-poetry',
       name: 'ancient-poetry',
       component: () => import('../views/AncientPoetryView.vue')
@@ -62,6 +67,11 @@ const router = createRouter({
       path: '/pdf-to-ppt',
       name: 'pdf-to-ppt',
       component: () => import('../views/PdfToPptView.vue')
+    },
+    {
+      path: '/pdf-edit',
+      name: 'pdf-edit',
+      component: () => import('../views/PdfEditView.vue')
     },
     {
       path: '/image-compress',
