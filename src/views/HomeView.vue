@@ -115,6 +115,17 @@ import SideNav from '../components/SideNav.vue'
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">支持B站等平台视频解析下载</p>
             <RouterLink to="/video-download" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
+
+          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div class="mb-4 flex items-center justify-center h-24 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">公众号文章打印</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">粘贴公众号链接，一键预览并打印或保存为PDF</p>
+            <RouterLink to="/wechat-article-print" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+          </div>
         </div>
       </section>
 

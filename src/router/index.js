@@ -74,6 +74,16 @@ const router = createRouter({
       component: () => import('../views/PdfEditView.vue')
     },
     {
+      path: '/word-pronunciation',
+      name: 'word-pronunciation',
+      component: () => import('../views/WordPronunciationView.vue')
+    },
+    {
+      path: '/wechat-article-print',
+      name: 'wechat-article-print',
+      component: () => import('../views/WechatArticlePrintView.vue')
+    },
+    {
       path: '/image-compress',
       name: 'image-compress',
       component: () => import('../views/ImageCompressView.vue')
