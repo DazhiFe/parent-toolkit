@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 
-// 模式切换：link=链接模式，paste=粘贴模式
-const mode = ref('link')
+// 模式切换：paste=粘贴模式（默认），link=链接模式
+const mode = ref('paste')
 const inputUrl = ref('')
 const pasteHtml = ref('')
 const loading = ref(false)

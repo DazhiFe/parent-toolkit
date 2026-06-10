@@ -44,6 +44,11 @@ const router = createRouter({
       component: () => import('../views/MathWithin100View.vue')
     },
     {
+      path: '/mixed-math',
+      name: 'mixed-math',
+      component: () => import('../views/MixedMathView.vue')
+    },
+    {
       path: '/hundred-chart',
       name: 'hundred-chart',
       component: () => import('../views/HundredChartView.vue')
