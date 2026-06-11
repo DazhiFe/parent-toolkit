@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>家长工具箱</title>
     <script>
-      // 单页应用（SPA）在 GitHub Pages 上的重定向脚本
-      // 将路径存储到 sessionStorage，然后重定向到首页
-      const path = window.location.pathname;
-      const basePath = '/parent-toolkit';
-      
-      if (path.startsWith(basePath)) {
-        const routePath = path.replace(basePath, '');
-        sessionStorage.setItem('spa-route', routePath);
-        window.location.replace(basePath + '/');
+      // SPA 回退：将路径存到 sessionStorage，跳转首页由 Vue Router 接管
+      var path = window.location.pathname
+      if (path !== '/' && !path.match(/\.\w+$/)) {
+        sessionStorage.setItem('spa-route', path)
+        window.location.replace(window.location.origin + '/')
       }
     </script>
   </head>

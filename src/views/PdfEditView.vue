@@ -41,6 +41,185 @@ const drawWidth = ref(3)
 const isDrawing = ref(false)
 let currentDrawPath = []
 
+// 删除页面功能
+const deletedPages = reactive(new Set())
+const deletedPageList = computed(() => [...deletedPages].sort((a, b) => a - b))
+const remainingPages = computed(() => totalPages.value - deletedPages.size)
+const isCurrentPageDeleted = computed(() => deletedPages.has(currentPage.value))
+
+const deleteCurrentPage = () => {
+  if (remainingPages.value <= 1) {
+    alert('至少需要保留一页')
+    return
+  }
+  const pageNum = currentPage.value
+  deletedPages.add(pageNum)
+
+  // 清理该页的编辑数据
+  delete textBlocksMap[pageNum]
+  delete pageEditsMap[pageNum]
+  delete pageDrawingsMap[pageNum]
+
+  // 跳转到下一个未删除的页面
+  let next = pageNum + 1
+  while (next <= totalPages.value && deletedPages.has(next)) next++
+  if (next > totalPages.value) {
+    next = pageNum - 1
+    while (next >= 1 && deletedPages.has(next)) next--
+  }
+  if (next >= 1 && next <= totalPages.value) {
+    currentPage.value = next
+    renderCurrentPage()
+  }
+}
+
+const deleteUnselectedPages = () => {
+  if (selectedPages.size === 0) return
+
+  // 找出所有未删除但未被选中的页面
+  const toDelete = []
+  for (let i = 1; i <= totalPages.value; i++) {
+    if (!deletedPages.has(i) && !selectedPages.has(i)) {
+      toDelete.push(i)
+    }
+  }
+
+  if (toDelete.length === 0) {
+    alert('没有可删除的页面')
+    return
+  }
+
+  for (const pageNum of toDelete) {
+    deletedPages.add(pageNum)
+    delete textBlocksMap[pageNum]
+    delete pageEditsMap[pageNum]
+    delete pageDrawingsMap[pageNum]
+  }
+  selectedPages.clear()
+  selectMode.value = false
+
+  if (deletedPages.has(currentPage.value)) {
+    let next = currentPage.value + 1
+    while (next <= totalPages.value && deletedPages.has(next)) next++
+    if (next > totalPages.value) {
+      next = currentPage.value - 1
+      while (next >= 1 && deletedPages.has(next)) next--
+    }
+    if (next >= 1 && next <= totalPages.value) {
+      currentPage.value = next
+      renderCurrentPage()
+    }
+  }
+}
+
+const restoreAllPages = () => {
+  deletedPages.clear()
+}
+
+// 缩略图预览
+const THUMB_SCALE = 0.6
+const pageThumbnails = reactive({})
+const thumbnailsLoaded = ref(false)
+const selectedPages = reactive(new Set())
+const selectMode = ref(false)
+
+const hasSelection = computed(() => selectedPages.size > 0)
+
+const generateAllThumbnails = async () => {
+  if (!pdfDoc.value) return
+  thumbnailsLoaded.value = false
+
+  for (let i = 1; i <= totalPages.value; i++) {
+    const page = await pdfDoc.value.getPage(i)
+    const viewport = page.getViewport({ scale: THUMB_SCALE })
+
+    const canvas = document.createElement('canvas')
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    const ctx = canvas.getContext('2d')
+
+    await page.render({ canvasContext: ctx, viewport }).promise
+    pageThumbnails[i] = canvas.toDataURL('image/jpeg', 0.92)
+  }
+  thumbnailsLoaded.value = true
+}
+
+const toggleSelectPage = (pageNum) => {
+  if (selectedPages.has(pageNum)) {
+    selectedPages.delete(pageNum)
+    if (selectedPages.size === 0) selectMode.value = false
+  } else {
+    selectedPages.add(pageNum)
+  }
+}
+
+const goToPage = (pageNum) => {
+  if (deletedPages.has(pageNum)) return
+  if (pageNum === currentPage.value) return
+  saveBlockEdit()
+  currentPage.value = pageNum
+  renderCurrentPage()
+}
+
+const handleThumbnailClick = (pageNum, event) => {
+  if (event.ctrlKey || event.metaKey || selectMode.value) {
+    toggleSelectPage(pageNum)
+  } else {
+    goToPage(pageNum)
+  }
+}
+
+const enterSelectMode = () => {
+  selectMode.value = true
+}
+
+const exitSelectMode = () => {
+  selectMode.value = false
+  selectedPages.clear()
+}
+
+const selectAllPages = () => {
+  for (let i = 1; i <= totalPages.value; i++) {
+    if (!deletedPages.has(i)) {
+      selectedPages.add(i)
+    }
+  }
+  selectMode.value = true
+}
+
+const deleteSelectedPages = () => {
+  if (selectedPages.size === 0) return
+  const remaining = totalPages.value - deletedPages.size - selectedPages.size
+  if (remaining < 1) {
+    alert('至少需要保留一页')
+    return
+  }
+
+  for (const pageNum of selectedPages) {
+    deletedPages.add(pageNum)
+    delete textBlocksMap[pageNum]
+    delete pageEditsMap[pageNum]
+    delete pageDrawingsMap[pageNum]
+  }
+  selectedPages.clear()
+  selectMode.value = false
+
+  // 如果当前页被删除了，跳转到最近的未删除页
+  if (deletedPages.has(currentPage.value)) {
+    let next = currentPage.value + 1
+    while (next <= totalPages.value && deletedPages.has(next)) next++
+    if (next > totalPages.value) {
+      next = currentPage.value - 1
+      while (next >= 1 && deletedPages.has(next)) next--
+    }
+    if (next >= 1 && next <= totalPages.value) {
+      currentPage.value = next
+      renderCurrentPage()
+    }
+  }
+}
+
+
 const mainCanvasRef = ref(null)
 const drawCanvasRef = ref(null)
 const containerRef = ref(null)
@@ -287,6 +466,8 @@ const handleFileSelect = async (event) => {
     loadProgress.value = 30
     await nextTick()
     await renderCurrentPage()
+    loadProgress.value = 70
+    await generateAllThumbnails()
     loadProgress.value = 100
   } catch (error) {
     console.error('PDF加载失败:', error)
@@ -302,6 +483,9 @@ const clearFile = () => {
   Object.keys(textBlocksMap).forEach(k => delete textBlocksMap[k])
   Object.keys(pageEditsMap).forEach(k => delete pageEditsMap[k])
   Object.keys(pageDrawingsMap).forEach(k => delete pageDrawingsMap[k])
+  deletedPages.clear()
+  Object.keys(pageThumbnails).forEach(k => delete pageThumbnails[k])
+  thumbnailsLoaded.value = false
   editingBlockIndex.value = -1
   currentPage.value = 1
   totalPages.value = 0
@@ -738,17 +922,21 @@ const handleDrawMouseUp = () => {
 }
 
 const prevPage = async () => {
-  if (currentPage.value > 1) {
-    saveBlockEdit()
-    currentPage.value--
+  saveBlockEdit()
+  let target = currentPage.value - 1
+  while (target >= 1 && deletedPages.has(target)) target--
+  if (target >= 1) {
+    currentPage.value = target
     await renderCurrentPage()
   }
 }
 
 const nextPage = async () => {
-  if (currentPage.value < totalPages.value) {
-    saveBlockEdit()
-    currentPage.value++
+  saveBlockEdit()
+  let target = currentPage.value + 1
+  while (target <= totalPages.value && deletedPages.has(target)) target++
+  if (target <= totalPages.value) {
+    currentPage.value = target
     await renderCurrentPage()
   }
 }
@@ -791,8 +979,15 @@ const exportPdf = async () => {
       format: [firstViewport.width, firstViewport.height]
     })
 
+    let isFirstNonDeletedPage = true
+
     for (let i = 1; i <= totalPages.value; i++) {
-      if (i > 1) {
+      // 跳过已删除的页面
+      if (deletedPages.has(i)) continue
+
+      if (isFirstNonDeletedPage) {
+        isFirstNonDeletedPage = false
+      } else {
         const p = await pdfDoc.value.getPage(i)
         const vp = p.getViewport({ scale: SCALE })
         pdf.addPage([vp.width, vp.height])
@@ -804,7 +999,7 @@ const exportPdf = async () => {
 
       const canvas = mainCanvasRef.value
       if (canvas) {
-        const imgData = canvas.toDataURL('image/jpeg', 0.92)
+        const imgData = canvas.toDataURL('image/png')
         const page = await pdfDoc.value.getPage(i)
         const viewport = page.getViewport({ scale: SCALE })
         pdf.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height)
@@ -994,7 +1189,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-4">
           <div class="flex justify-center overflow-auto">
             <div ref="containerRef" class="relative inline-block" style="max-width: 100%;">
               <canvas ref="mainCanvasRef" class="block max-w-full h-auto"></canvas>
@@ -1101,6 +1296,97 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
+        <!-- 缩略图预览（下方，3列网格） -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">页面预览</span>
+            <div class="flex items-center gap-2">
+              <button v-if="!selectMode" @click="enterSelectMode"
+                      class="px-3 py-1 text-xs font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                多选模式
+              </button>
+              <template v-if="selectMode">
+                <button @click="selectAllPages"
+                        class="px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  全选
+                </button>
+                <button @click="deleteSelectedPages" :disabled="selectedPages.size === 0"
+                        :class="[
+                          'px-3 py-1 text-xs font-medium rounded-lg transition-colors',
+                          selectedPages.size > 0
+                            ? 'bg-red-500 text-white hover:bg-red-600'
+                            : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
+                        ]">
+                  删除所选({{ selectedPages.size }})
+                </button>
+                <button @click="deleteUnselectedPages" :disabled="selectedPages.size === 0"
+                        :class="[
+                          'px-3 py-1 text-xs font-medium rounded-lg transition-colors',
+                          selectedPages.size > 0
+                            ? 'bg-green-500 text-white hover:bg-green-600'
+                            : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
+                        ]">
+                  保留所选(删其余)
+                </button>
+                <button @click="exitSelectMode"
+                        class="px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  取消
+                </button>
+              </template>
+              <span v-if="!selectMode" class="text-[11px] text-gray-400 dark:text-gray-500">Ctrl+点击可多选</span>
+            </div>
+          </div>
+
+          <div v-if="!thumbnailsLoaded" class="flex items-center justify-center h-24 text-xs text-gray-400">
+            <svg class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            加载中...
+          </div>
+          <div v-else class="grid grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-1">
+            <div v-for="n in totalPages" :key="'thumb-'+n"
+                 @click="handleThumbnailClick(n, $event)"
+                 :class="[
+                   'relative rounded-lg overflow-hidden border-2 cursor-pointer transition-all',
+                   selectedPages.has(n)
+                     ? 'border-blue-500 shadow-md ring-2 ring-blue-300 dark:ring-blue-600'
+                     : currentPage === n && !selectMode
+                       ? 'border-violet-500 shadow-md ring-1 ring-violet-300 dark:ring-violet-600'
+                       : 'border-gray-200 dark:border-gray-600 hover:border-violet-400',
+                   deletedPages.has(n) ? 'opacity-30' : ''
+                 ]">
+              <img :src="pageThumbnails[n]" :alt="'第'+n+'页'"
+                   class="w-full h-auto block pointer-events-none"
+                   :class="deletedPages.has(n) ? 'grayscale' : ''" />
+              <!-- 选择复选框 -->
+              <div v-if="selectMode"
+                   :class="[
+                     'absolute top-1.5 left-1.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                     selectedPages.has(n)
+                       ? 'bg-blue-500 border-blue-500'
+                       : 'bg-white/80 border-gray-400'
+                   ]">
+                <svg v-if="selectedPages.has(n)" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <!-- 页码 -->
+              <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-1">
+                第{{ n }}页
+              </div>
+              <!-- 删除状态标记 -->
+              <div v-if="deletedPages.has(n)"
+                   class="absolute inset-0 flex items-center justify-center bg-red-500/20">
+                <span class="text-red-600 text-xs font-bold bg-white/90 px-1.5 py-0.5 rounded">已删除</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -1113,6 +1399,7 @@ onBeforeUnmount(() => {
               </button>
               <span class="text-sm text-gray-600 dark:text-gray-400">
                 {{ currentPage }} / {{ totalPages }}
+                <span v-if="deletedPages.size > 0" class="text-red-500 ml-1">(已删{{ deletedPages.size }}页)</span>
               </span>
               <button @click="nextPage" :disabled="currentPage >= totalPages"
                       :class="['px-3 py-1.5 rounded-lg text-sm font-medium transition-colors', currentPage >= totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700']">
@@ -1120,6 +1407,23 @@ onBeforeUnmount(() => {
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
+              </button>
+
+              <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+              <button @click="deleteCurrentPage"
+                      class="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                删除本页
+              </button>
+              <button v-if="deletedPages.size > 0" @click="restoreAllPages"
+                      class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                撤销删除
               </button>
             </div>
 

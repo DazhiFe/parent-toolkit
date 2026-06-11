@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 
-// 模式切换：paste=粘贴模式（默认），link=链接模式
-const mode = ref('paste')
+// 模式切换：link=链接模式（默认），paste=粘贴模式
+const mode = ref('link')
 const inputUrl = ref('')
 const pasteHtml = ref('')
 const loading = ref(false)
@@ -43,10 +43,13 @@ const fetchArticle = async () => {
 
   try {
     const apiUrl = API_BASE
-      ? `${API_BASE}/api/parse-wechat?url=${encodeURIComponent(url)}`
+      ? `${API_BASE}/?url=${encodeURIComponent(url)}`
       : `/api/parse-wechat?url=${encodeURIComponent(url)}`
 
-    const response = await fetch(apiUrl)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
+    const response = await fetch(apiUrl, { signal: controller.signal })
+    clearTimeout(timeout)
     const data = await response.json()
 
     if (!response.ok || !data.success) {
