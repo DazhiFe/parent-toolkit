@@ -229,7 +229,7 @@ onMounted(() => {
 <template>
   <div
     v-if="quote"
-    class="daily-quote group hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300 max-w-[440px]"
+    class="daily-quote group hidden lg:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300 max-w-[440px]"
     :title="source === 'ai' ? '由 DeepSeek AI 生成' : '每日治愈短句'"
   >
     <svg
