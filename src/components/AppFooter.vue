@@ -15,8 +15,8 @@ const hasSideNav = computed(() => {
     <div class="container mx-auto px-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <h3 class="text-lg font-semibold mb-4">家长工具箱</h3>
-          <p class="text-gray-300 dark:text-gray-400">为家长提供AI工具导航和育儿辅助工具，助力孩子健康成长。</p>
+          <h3 class="text-lg font-semibold mb-4">爸妈工具箱</h3>
+          <p class="text-gray-300 dark:text-gray-400">为爸妈提供AI工具导航和育儿辅助工具，助力孩子健康成长。</p>
         </div>
         <div>
           <h3 class="text-lg font-semibold mb-4">快速链接</h3>
@@ -43,7 +43,7 @@ const hasSideNav = computed(() => {
         </div>
       </div>
       <div class="mt-8 pt-4 border-t border-gray-700 dark:border-gray-800 text-center text-gray-400 dark:text-gray-500">
-        <p>&copy; {{ new Date().getFullYear() }} 家长工具箱. 保留所有权利.</p>
+        <p>&copy; {{ new Date().getFullYear() }} 爸妈工具箱. 保留所有权利.</p>
       </div>
     </div>
   </footer>

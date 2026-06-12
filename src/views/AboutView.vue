@@ -3,8 +3,8 @@
 
 <template>
   <div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8 dark:text-white">关于家长工具箱</h1>
-    <p class="text-gray-600 dark:text-gray-400 text-lg">为家长提供AI工具导航和育儿辅助工具，助力孩子健康成长。</p>
+    <h1 class="text-3xl font-bold mb-8 dark:text-white">关于爸妈工具箱</h1>
+    <p class="text-gray-600 dark:text-gray-400 text-lg">为爸妈提供AI工具导航和育儿辅助工具，助力孩子健康成长。</p>
     <div class="mt-16">
       <h2 class="text-2xl font-semibold mb-8 text-center dark:text-white">联系我</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

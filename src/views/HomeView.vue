@@ -12,8 +12,8 @@ import SideNav from '../components/SideNav.vue'
     <div class="flex-1 lg:ml-64 px-4 py-8">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold dark:text-white">家长工具箱</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-2">为家长和孩子提供实用工具和资源</p>
+        <h1 class="text-3xl font-bold dark:text-white">爸妈工具箱</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">为爸妈和孩子提供实用工具和资源</p>
       </div>
 
       <!-- 常用网站 -->
