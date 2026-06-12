@@ -1,8 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import FeedbackModal from './FeedbackModal.vue'
 
 const route = useRoute()
+const showFeedback = ref(false)
 
 // 判断是否需要为左侧导航栏留出空间
 const hasSideNav = computed(() => {
@@ -28,6 +30,12 @@ const hasSideNav = computed(() => {
           <h3 class="text-lg font-semibold mb-4">联系我们</h3>
           <p class="text-gray-300 dark:text-gray-400">公众号：大志笔记</p>
           <p class="text-gray-300 dark:text-gray-400">邮箱：2238662003@qq.com</p>
+          <button @click="showFeedback = true" class="mt-3 inline-flex items-center gap-1.5 text-primary-400 hover:text-primary-300 transition-colors text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            意见反馈
+          </button>
           <!-- <div class="mt-4 flex space-x-4">
             <a href="#" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -46,5 +54,6 @@ const hasSideNav = computed(() => {
         <p>&copy; {{ new Date().getFullYear() }} 爸妈工具箱. 保留所有权利.</p>
       </div>
     </div>
+    <FeedbackModal :show="showFeedback" @close="showFeedback = false" />
   </footer>
 </template>
