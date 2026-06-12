@@ -109,6 +109,11 @@ const router = createRouter({
       component: () => import('../views/VideoDownloadView.vue')
     },
     {
+      path: '/feedback-admin',
+      name: 'feedback-admin',
+      component: () => import('../views/FeedbackAdminView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')

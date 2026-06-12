@@ -349,7 +349,7 @@ const reset = () => {
           </button>
         </div>
         <div class="flex items-center justify-between mt-4">
-          <p class="text-xs text-gray-400">需要部署API服务，未部署请使用手动粘贴模式</p>
+          <!-- <p class="text-xs text-gray-400">需要部署API服务，未部署请使用手动粘贴模式</p> -->
           <button
             @click="fetchArticle"
             :disabled="loading"
