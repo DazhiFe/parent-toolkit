@@ -229,12 +229,12 @@ onMounted(() => {
 <template>
   <div
     v-if="quote"
-    class="daily-quote group flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 max-w-[220px] md:max-w-xs"
-    :title="source === 'ai' ? '由 DeepSeek AI 生成' : (source === 'local' ? '每日治愈短句' : '每日治愈短句')"
+    class="daily-quote group hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300 max-w-[440px]"
+    :title="source === 'ai' ? '由 DeepSeek AI 生成' : '每日治愈短句'"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-3.5 w-3.5 flex-shrink-0 text-rose-300 dark:text-rose-400"
+      class="h-4 w-4 flex-shrink-0 text-rose-400 dark:text-rose-300"
       :class="{ 'animate-bounce': loading }"
       fill="none"
       viewBox="0 0 24 24"
@@ -251,12 +251,12 @@ onMounted(() => {
     <button
       @click="refreshQuote"
       :disabled="loading"
-      class="flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all disabled:opacity-50"
+      class="flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all disabled:opacity-50"
       title="换一句"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        class="h-3 w-3"
+        class="h-3.5 w-3.5"
         :class="{ 'animate-spin': loading }"
         fill="none"
         viewBox="0 0 24 24"
@@ -272,6 +272,6 @@ onMounted(() => {
 <style scoped>
 .daily-quote {
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 </style>
