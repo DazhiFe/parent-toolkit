@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import { theme, toggleTheme } from '../composables/useTheme.js'
+import DailyQuote from './DailyQuote.vue'
 
 const route = useRoute()
 const isMenuOpen = ref(false)
@@ -38,6 +39,8 @@ const isActiveRoute = (path) => {
         </div>
       </div>
       <div class="flex items-center space-x-4">
+        <!-- 每日治愈短句 -->
+        <DailyQuote />
         <!-- 主题切换按钮 -->
         <button @click="toggleTheme" class="p-2 rounded-full text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors focus:outline-none" aria-label="切换主题">
           <!-- 太阳图标 (亮色模式) -->

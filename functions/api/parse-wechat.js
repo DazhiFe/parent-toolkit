@@ -72,10 +72,10 @@ function parseWechatArticle(html) {
   try {
     let title = ''
     const titleMatch = html.match(/id="activity-name"[^>]*>([\s\S]*?)<\/h1>/)
-    if (titleMatch) title = titleMatch[1].trim()
+    if (titleMatch) title = stripHtml(titleMatch[1])
     if (!title) {
       const ogMatch = html.match(/property="og:title"\s+content="([^"]*)"/)
-      if (ogMatch) title = ogMatch[1].trim()
+      if (ogMatch) title = stripHtml(ogMatch[1])
     }
     if (!title) {
       const tagMatch = html.match(/<title>([\s\S]*?)<\/title>/)
@@ -84,10 +84,10 @@ function parseWechatArticle(html) {
 
     let author = ''
     const authorMatch = html.match(/id="js_name"[^>]*>([\s\S]*?)<\/a>/)
-    if (authorMatch) author = authorMatch[1].trim()
+    if (authorMatch) author = stripHtml(authorMatch[1])
     if (!author) {
       const nickMatch = html.match(/class="rich_media_meta_nickname"[^>]*>([\s\S]*?)<\/a>/)
-      if (nickMatch) author = nickMatch[1].trim()
+      if (nickMatch) author = stripHtml(nickMatch[1])
     }
 
     let publishTime = ''
@@ -105,6 +105,10 @@ function parseWechatArticle(html) {
   } catch (e) {
     return null
   }
+}
+
+function stripHtml(text) {
+  return text.replace(/<[^>]+>/g, '').trim()
 }
 
 function cleanHtml(html) {

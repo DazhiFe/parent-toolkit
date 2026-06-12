@@ -23,6 +23,12 @@ const isValidWechatUrl = (url) => {
   return /^https?:\/\/mp\.weixin\.qq\.com\/s[\/?]/i.test(url.trim())
 }
 
+// 去除HTML标签
+const stripHtml = (text) => {
+  if (!text) return ''
+  return text.replace(/<[^>]+>/g, '').trim()
+}
+
 // ========== 链接模式：通过API抓取 ==========
 const fetchArticle = async () => {
   errorMessage.value = ''
@@ -57,8 +63,8 @@ const fetchArticle = async () => {
     }
 
     article.value = {
-      title: data.title || '未命名文章',
-      author: data.author || '',
+      title: stripHtml(data.title || '未命名文章'),
+      author: stripHtml(data.author || ''),
       publishTime: data.publishTime || '',
       contentHtml: data.contentHtml || '',
       sourceUrl: url
