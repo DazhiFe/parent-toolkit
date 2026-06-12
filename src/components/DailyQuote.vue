@@ -85,10 +85,11 @@ const fetchQuote = async (refresh = false) => {
     return
   }
 
+  const isDev = import.meta.env.DEV
   const API_BASE = import.meta.env.VITE_API_BASE || ''
 
-  // 没有配置 API_BASE 时，直接使用本地短句
-  if (!API_BASE) {
+  // 本地开发且没有配置 API_BASE 时，使用本地短句（避免请求本地不存在的 API）
+  if (isDev && !API_BASE) {
     useLocalQuote(refresh)
     return
   }
@@ -96,7 +97,10 @@ const fetchQuote = async (refresh = false) => {
   loading.value = true
 
   try {
-    const apiPath = `${API_BASE}/api/daily-quote${refresh ? '?refresh=true' : ''}`
+    // 线上使用相对路径 /api/daily-quote，本地使用配置的 API_BASE
+    const apiPath = API_BASE
+      ? `${API_BASE}/api/daily-quote${refresh ? '?refresh=true' : ''}`
+      : `/api/daily-quote${refresh ? '?refresh=true' : ''}`
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
