@@ -22,19 +22,11 @@ const hasSideNav = computed(() => {
         </div>
         <div>
           <h3 class="text-lg font-semibold mb-4">快速链接</h3>
-          <ul class="grid grid-cols-2 gap-x-4 gap-y-2">
+          <ul class="space-y-2">
             <li><RouterLink to="/" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">首页</RouterLink></li>
-            <li><RouterLink to="/ai-tools" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">AI工具</RouterLink></li>
             <li><RouterLink to="/study-assistant" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">AI学习助手</RouterLink></li>
-            <li><RouterLink to="/pomodoro-timer" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">番茄钟</RouterLink></li>
-            <li><RouterLink to="/ancient-poetry" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">古诗词</RouterLink></li>
-            <li><RouterLink to="/pinyin-annotation" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">拼音标注</RouterLink></li>
-            <li><RouterLink to="/mixed-math" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">数学练习</RouterLink></li>
-            <li><RouterLink to="/word-pronunciation" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">单词发音</RouterLink></li>
-            <li><RouterLink to="/image-to-pdf" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">图片转PDF</RouterLink></li>
-            <li><RouterLink to="/image-compress" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">图片压缩</RouterLink></li>
-            <li><RouterLink to="/wechat-article-print" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">公众号转打印</RouterLink></li>
-            <li><RouterLink to="/about" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">关于我们</RouterLink></li>
+            <li><RouterLink to="/ai-tools" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">AI工具</RouterLink></li>
+            <li><RouterLink to="/about" class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors">关于</RouterLink></li>
           </ul>
         </div>
         <div>
