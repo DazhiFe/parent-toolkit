@@ -39,5 +39,40 @@
         </div>
       </div>
     </div>
+
+    <!-- 请我喝杯咖啡 -->
+    <div class="mt-16">
+      <h2 class="text-2xl font-semibold mb-2 text-center dark:text-white">请我喝杯咖啡</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-center text-sm mb-8">如果觉得本站对你有帮助，欢迎请我喝杯咖啡 ☕</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 微信收款 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-6">
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            <span class="text-gray-600 dark:text-gray-300 font-medium">微信</span>
+          </div>
+          <div class="flex justify-center mb-6">
+            <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+              <img src="../assets/images/skm-wx.jpg" alt="微信收款码" class="w-44 h-44 object-contain rounded-lg" />
+            </div>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 text-center text-sm">扫码即可打赏，感谢你的支持</p>
+        </div>
+
+        <!-- 支付宝收款 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-6">
+            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span class="text-gray-600 dark:text-gray-300 font-medium">支付宝</span>
+          </div>
+          <div class="flex justify-center mb-6">
+            <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+              <img src="../assets/images/skm-zfb.jpg" alt="支付宝收款码" class="w-44 h-44 object-contain rounded-lg" />
+            </div>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 text-center text-sm">扫码即可打赏，感谢你的支持</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
