@@ -229,3 +229,15 @@ import SideNav from '../components/SideNav.vue'
     </div>
   </div>
 </template>
+
+<style scoped>
+.tool-card {
+  @apply shadow-md;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+}
+</style>
