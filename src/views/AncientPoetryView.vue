@@ -1,30 +1,44 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { pinyin } from 'pinyin-pro'
-import { searchPoemByTitle, getRequiredPoems, getPoemsByLevel } from '../data/poems.js'
+import { loadPoems, searchPoemByTitle } from '../data/poems.js'
 
 const poemName = ref('')
 const loading = ref(false)
 const result = ref(null)
 const error = ref('')
-const requiredPoems = getRequiredPoems()
+const allPoems = ref([])
+const dataLoading = ref(true)
 const activeTab = ref('original') // 当前选中的 Tab：original, translation, appreciation, keywords
 const selectedLevel = ref('all') // 当前选中的学段：all, 小学, 初中, 高中
 
+// 必背古诗列表
+const requiredPoems = computed(() => allPoems.value.filter((p) => p.required))
+
 // 各学段古诗数量
 const levelCounts = computed(() => ({
-  all: requiredPoems.length,
-  小学: getPoemsByLevel('小学').length,
-  初中: getPoemsByLevel('初中').length,
-  高中: getPoemsByLevel('高中').length
+  all: requiredPoems.value.length,
+  小学: allPoems.value.filter((p) => p.level === '小学').length,
+  初中: allPoems.value.filter((p) => p.level === '初中').length,
+  高中: allPoems.value.filter((p) => p.level === '高中').length
 }))
 
 // 根据学段获取古诗列表
 const filteredPoems = computed(() => {
   if (selectedLevel.value === 'all') {
-    return requiredPoems
+    return requiredPoems.value
   }
-  return getPoemsByLevel(selectedLevel.value)
+  return allPoems.value.filter((p) => p.level === selectedLevel.value)
+})
+
+onMounted(async () => {
+  try {
+    allPoems.value = await loadPoems()
+  } catch (e) {
+    error.value = '诗词数据加载失败，请刷新页面重试'
+  } finally {
+    dataLoading.value = false
+  }
 })
 
 // 生成拼音
@@ -76,7 +90,7 @@ const parsePoemLine = (line) => {
   return chars
 }
 
-const searchPoem = () => {
+const searchPoem = async () => {
   if (!poemName.value.trim()) {
     error.value = '请输入古诗名称。目前收录227首古诗词，涵盖小学、初中、高中三个学段。'
     return
@@ -87,7 +101,7 @@ const searchPoem = () => {
   result.value = null
 
   // 本地数据查询，无需延迟
-  const poem = searchPoemByTitle(poemName.value.trim())
+  const poem = await searchPoemByTitle(poemName.value.trim())
   
   if (!poem) {
     error.value = '未找到该古诗，请检查诗名是否正确。目前收录了227首古诗词，涵盖小学（75首）、初中（85首）、高中（67首）三个学段，如：静夜思、木兰诗、将进酒等。'

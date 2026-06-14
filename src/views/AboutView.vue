@@ -16,7 +16,7 @@
           </div>
           <div class="flex justify-center mb-6">
             <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-              <img src="../assets/images/gzh-code.jpg" alt="微信公众号二维码" class="w-44 h-44 object-contain rounded-lg" />
+              <img src="../assets/images/gzh-code.jpg" alt="微信公众号二维码" width="176" height="176" loading="lazy" class="w-44 h-44 object-contain rounded-lg" />
             </div>
           </div>
           <h3 class="text-xl font-bold text-center mb-2 dark:text-white">大志笔记</h3>
@@ -31,7 +31,7 @@
           </div>
           <div class="flex justify-center mb-6">
             <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-              <img src="../assets/images/my-code.jpg" alt="微信二维码" class="w-44 h-44 object-contain rounded-lg" />
+              <img src="../assets/images/my-code.jpg" alt="微信二维码" width="176" height="176" loading="lazy" class="w-44 h-44 object-contain rounded-lg" />
             </div>
           </div>
           <h3 class="text-xl font-bold text-center mb-2 dark:text-white">添加微信</h3>
@@ -53,7 +53,7 @@
           </div>
           <div class="flex justify-center mb-6">
             <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-              <img src="../assets/images/skm-wx.jpg" alt="微信收款码" class="w-44 h-44 object-contain rounded-lg" />
+              <img src="../assets/images/skm-wx.jpg" alt="微信收款码" width="176" height="176" loading="lazy" class="w-44 h-44 object-contain rounded-lg" />
             </div>
           </div>
           <p class="text-gray-500 dark:text-gray-400 text-center text-sm">扫码即可打赏，感谢你的支持</p>
@@ -67,7 +67,7 @@
           </div>
           <div class="flex justify-center mb-6">
             <div class="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-              <img src="../assets/images/skm-zfb.jpg" alt="支付宝收款码" class="w-44 h-44 object-contain rounded-lg" />
+              <img src="../assets/images/skm-zfb.jpg" alt="支付宝收款码" width="176" height="176" loading="lazy" class="w-44 h-44 object-contain rounded-lg" />
             </div>
           </div>
           <p class="text-gray-500 dark:text-gray-400 text-center text-sm">扫码即可打赏，感谢你的支持</p>
