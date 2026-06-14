@@ -57,6 +57,19 @@ export default defineConfig({
     }
   },
   base: '/',
+  build: {
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-vendor': ['vue', 'vue-router'],
+          'pdf-vendor': ['pdfjs-dist', 'jspdf'],
+          'office-vendor': ['docx', 'docx-preview', 'mammoth', 'pptxgenjs'],
+          'image-vendor': ['html2canvas', 'jszip']
+        }
+      }
+    }
+  },
   server: {
     port: 3000,
     open: true

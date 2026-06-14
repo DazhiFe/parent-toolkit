@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /feedback-admin
+
+Sitemap: https://bama.help/sitemap.xml

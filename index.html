@@ -5,9 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>爸妈工具箱 - AI导航和育儿工具集合</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="爸妈工具箱：免费AI工具导航、儿童学习辅导（数学/语文/拼音/古诗词）、PDF和图片处理、家长育儿资源一站式平台。" />
+    <meta name="keywords" content="爸妈工具箱,AI工具导航,小学辅导,数学练习,拼音标注,古诗词,PDF转换,图片压缩,家长工具,育儿资源" />
+    <meta name="author" content="大志笔记" />
+    <meta name="theme-color" content="#0ea5e9" />
+    <link rel="canonical" href="https://bama.help/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="爸妈工具箱 - AI导航和育儿工具集合" />
+    <meta property="og:description" content="为爸妈提供AI工具导航和育儿辅助工具，助力孩子健康成长。" />
+    <meta property="og:url" content="https://bama.help/" />
+    <meta property="og:site_name" content="爸妈工具箱" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="爸妈工具箱 - AI导航和育儿工具集合" />
+    <meta name="twitter:description" content="为爸妈提供AI工具导航和育儿辅助工具，助力孩子健康成长。" />
+    <script>
+      // 主题判断前置，避免首屏 FOUC
+      (function () {
+        try {
+          var t = localStorage.getItem('userTheme')
+          var hour = new Date().getHours()
+          var dark = t === 'dark' || (!t && (hour >= 18 || hour < 6))
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
     <style>
       /* 全局加载动画样式，需要内联以保证立即显示 */
       #app-loader {
