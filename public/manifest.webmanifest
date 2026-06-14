@@ -1,0 +1,19 @@
+{
+  "name": "爸妈工具箱",
+  "short_name": "爸妈工具箱",
+  "description": "为爸妈提供AI工具导航和育儿辅助工具，助力孩子健康成长。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

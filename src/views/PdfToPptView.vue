@@ -3,10 +3,8 @@ import { ref } from 'vue'
 import PptxGenJS from 'pptxgenjs'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString()
+// 使用 CDN 加载 worker，避免打入主包（约 1.3MB）
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/legacy/build/pdf.worker.min.mjs`
 
 const pdfFile = ref(null)
 const pdfPages = ref([])
