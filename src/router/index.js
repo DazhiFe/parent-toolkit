@@ -63,6 +63,11 @@ const router = createRouter({
       component: () => import('../views/PinyinAnnotationView.vue')
     },
     {
+      path: '/character-practice',
+      name: 'character-practice',
+      component: () => import('../views/CharacterPracticeView.vue')
+    },
+    {
       path: '/image-to-pdf',
       name: 'image-to-pdf',
       component: () => import('../views/ImageToPdfView.vue')

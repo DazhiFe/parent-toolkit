@@ -18,6 +18,14 @@ const chineseTools = [
     url: '/pinyin-annotation',
     color: 'orange',
     icon: 'pinyin'
+  },
+  {
+    id: 3,
+    name: '生字字帖生成器',
+    description: '输入生字，生成田字格/米字格可打印字帖',
+    url: '/character-practice',
+    color: 'amber',
+    icon: 'pen'
   }
 ]
 
@@ -105,6 +113,9 @@ const getIcon = (iconName) => {
     </svg>`,
     mix: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+    </svg>`,
+    pen: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
     </svg>`
   }
   return icons[iconName] || icons.poetry
@@ -120,7 +131,8 @@ const getColorClass = (color) => {
     orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
     teal: { bg: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
     purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
-    pink: { bg: 'bg-pink-50 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' }
+    pink: { bg: 'bg-pink-50 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' },
+    amber: { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400' }
   }
   return colors[color] || colors.blue
 }
