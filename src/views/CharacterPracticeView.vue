@@ -2,6 +2,9 @@
 import { ref, computed, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
 import { pinyin } from 'pinyin-pro'
 import HanziWriter from 'hanzi-writer'
+import { useToast } from '../composables/useToast'
+
+const toast = useToast()
 
 // ─── 数据加载 ───
 const grades = ref([])
@@ -68,12 +71,27 @@ const getCharPinyin = (char) => {
   try { return pinyin(char, { toneType: 'symbol', type: 'string' }) } catch { return '' }
 }
 
+// 选择课文后自动生成预览
+watch(selectedLessonId, (val) => {
+  if (val) showResult.value = true
+})
+
+// 自由输入时，输入汉字后自动生成预览
+watch(customChars, (val) => {
+  if (inputMode.value === 'custom' && val.replace(/[^\u4e00-\u9fa5]/g, '').length > 0) {
+    showResult.value = true
+  }
+})
+
 const generateSheet = () => {
   if (!practiceChars.value.length) {
-    alert('请先选择课文或输入生字')
+    toast.warning('请先选择课文或输入生字')
     return
   }
   showResult.value = true
+  nextTick(() => {
+    document.getElementById('sheet-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 const clearAll = () => {
@@ -127,7 +145,9 @@ const quizStroke = () => {
   if (writerInstance) writerInstance.quiz({
     onComplete: (summary) => {
       if (summary.totalMistakes === 0) {
-        alert('太棒了！笔顺完全正确！')
+        toast.success('太棒了！笔顺完全正确！')
+      } else {
+        toast.info(`完成了！有 ${summary.totalMistakes} 处笔误，再试试吧`)
       }
     }
   })
@@ -175,19 +195,10 @@ body { font-family: 'KaiTi','STKaiti','FangSong','STFangsong','SimSun',serif; }
 .char-label { font-size: 13px; color: #666; }
 .char-stroke-hint { font-size: 10px; color: #aaa; margin-left: 8px; }
 .grid-row { display: flex; gap: 3px; flex-wrap: wrap; }
-.grid-cell { width: 68px; height: 68px; position: relative; border: 1px solid #bbb; flex-shrink: 0; }
+.grid-cell { width: 68px; height: 68px; position: relative; border: 2px solid #888; flex-shrink: 0; }
 .grid-cell .guide-char { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 48px; font-family: 'KaiTi','STKaiti','FangSong','STFangsong','SimSun',serif; line-height: 1; }
 .guide-outline { color: rgba(220, 38, 38, 0.15); }
 .guide-dot { color: rgba(220, 38, 38, 0.22); -webkit-text-fill-color: transparent; -webkit-text-stroke: 0.6px rgba(220, 38, 38, 0.25); }
-.tian-h { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #d4d4d4; }
-.tian-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #d4d4d4; }
-.mi-d1, .mi-d2 { position: absolute; background: #d4d4d4; height: 1px; width: 141%; top: 50%; left: 50%; }
-.mi-d1 { transform: translate(-50%, -50%) rotate(45deg); }
-.mi-d2 { transform: translate(-50%, -50%) rotate(-45deg); }
-.jiu-h1 { position: absolute; top: 33.33%; left: 0; right: 0; height: 1px; background: #d4d4d4; }
-.jiu-h2 { position: absolute; top: 66.66%; left: 0; right: 0; height: 1px; background: #d4d4d4; }
-.jiu-v1 { position: absolute; left: 33.33%; top: 0; bottom: 0; width: 1px; background: #d4d4d4; }
-.jiu-v2 { position: absolute; left: 66.66%; top: 0; bottom: 0; width: 1px; background: #d4d4d4; }
 </style></head><body>
 <div class="sheet-title">生字练习字帖</div>
 <div class="sheet-info"><span>姓名：________</span><span>日期：________</span><span>评价：☆☆☆</span></div>
@@ -195,10 +206,17 @@ ${practiceChars.value.map(char => {
   const py = showPinyin.value ? getCharPinyin(char) : ''
   const guideClass = guideStyle.value === 'outline' ? 'guide-outline' : guideStyle.value === 'dot' ? 'guide-dot' : ''
   const grid = gridType.value
-  let gridLines = ''
-  if (grid === 'tian') gridLines = '<div class="tian-h"></div><div class="tian-v"></div>'
-  else if (grid === 'mi') gridLines = '<div class="tian-h"></div><div class="tian-v"></div><div class="mi-d1"></div><div class="mi-d2"></div>'
-  else if (grid === 'jiu') gridLines = '<div class="jiu-h1"></div><div class="jiu-h2"></div><div class="jiu-v1"></div><div class="jiu-v2"></div>'
+  let gridSvg = ''
+  const s = 68
+  const dash = 'stroke-dasharray="3,2"'
+  if (grid === 'tian') {
+    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${s/2}" x2="${s-2}" y2="${s/2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${s/2}" y1="2" x2="${s/2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/></svg>`
+  } else if (grid === 'mi') {
+    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${s/2}" x2="${s-2}" y2="${s/2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${s/2}" y1="2" x2="${s/2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="2" y1="2" x2="${s-2}" y2="${s-2}" stroke="#bbb" stroke-width="0.6" ${dash}/><line x1="${s-2}" y1="2" x2="2" y2="${s-2}" stroke="#bbb" stroke-width="0.6" ${dash}/></svg>`
+  } else if (grid === 'jiu') {
+    const t1 = (s / 3).toFixed(1), t2 = (s * 2 / 3).toFixed(1)
+    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${t1}" x2="${s-2}" y2="${t1}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="2" y1="${t2}" x2="${s-2}" y2="${t2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${t1}" y1="2" x2="${t1}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${t2}" y1="2" x2="${t2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/></svg>`
+  }
 
   const halfCount = guideStyle.value === 'half' ? Math.ceil(repeatCount.value / 2) : 0
   const cells = []
@@ -207,7 +225,7 @@ ${practiceChars.value.map(char => {
     if (guideStyle.value === 'outline' && i === 0) showGuide = true
     if (guideStyle.value === 'dot') showGuide = true
     if (guideStyle.value === 'half' && i < halfCount) showGuide = true
-    cells.push(`<div class="grid-cell">${gridLines}${showGuide ? `<div class="guide-char ${guideClass}">${char}</div>` : ''}</div>`)
+    cells.push(`<div class="grid-cell">${gridSvg}${showGuide ? `<div class="guide-char ${guideClass}">${char}</div>` : ''}</div>`)
   }
   return `<div class="char-section">
     <div class="char-header">
@@ -259,24 +277,38 @@ ${practiceChars.value.map(char => {
 
           <!-- 按年级选择 -->
           <div v-if="inputMode === 'grade'" class="space-y-4">
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-              <button v-for="g in grades" :key="g.id" @click="selectedGradeId = g.id; selectedLessonId = ''"
-                :class="['px-3 py-2 rounded-lg text-sm font-medium transition-colors border',
-                  selectedGradeId === g.id
-                    ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300'
-                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300']">
-                {{ g.name }}
-              </button>
+            <!-- 年级标签：胶囊样式 + 书本图标 -->
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">选择年级</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <button v-for="g in grades" :key="g.id" @click="selectedGradeId = g.id; selectedLessonId = ''"
+                  :class="['px-3 py-2.5 rounded-full text-sm font-medium transition-all border-2',
+                    selectedGradeId === g.id
+                      ? 'bg-primary-500 dark:bg-primary-600 border-primary-500 dark:border-primary-600 text-white shadow-md shadow-primary-200 dark:shadow-primary-900/30 scale-105'
+                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300 hover:shadow-sm']">
+                  {{ g.name }}
+                </button>
+              </div>
             </div>
 
-            <div v-if="lessons.length" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-              <button v-for="l in lessons" :key="l.id" @click="selectedLessonId = l.id"
-                :class="['px-3 py-2 rounded-lg text-sm transition-colors border',
-                  selectedLessonId === l.id
-                    ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
-                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-amber-300']">
-                {{ l.name }}
-              </button>
+            <!-- 课文标签：圆角矩形 + 文档图标 -->
+            <div v-if="lessons.length">
+              <div class="flex items-center gap-2 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">选择课文</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                <button v-for="l in lessons" :key="l.id" @click="selectedLessonId = l.id"
+                  :class="['px-3 py-2 rounded-lg text-sm transition-all border',
+                    selectedLessonId === l.id
+                      ? 'bg-amber-500 dark:bg-amber-600 border-amber-500 dark:border-amber-600 text-white shadow-md shadow-amber-200 dark:shadow-amber-900/30 scale-105'
+                      : 'bg-amber-50/60 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 hover:border-amber-400 hover:shadow-sm']">
+                  {{ l.name }}
+                </button>
+              </div>
             </div>
 
             <div v-if="practiceChars.length" class="flex flex-wrap gap-2 pt-2">
@@ -366,16 +398,16 @@ ${practiceChars.value.map(char => {
         <div v-if="showResult && practiceChars.length" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- 笔顺演示区 -->
           <div v-if="showStrokeOrder" class="lg:col-span-1">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-24">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
               <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">笔顺演示</h2>
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">点击生字查看笔顺动画</p>
 
               <!-- 生字选择 -->
-              <div class="flex flex-wrap gap-2 mb-4 max-h-40 overflow-y-auto">
+              <div class="flex flex-wrap gap-2.5 mb-4 max-h-40 overflow-y-auto p-1">
                 <button v-for="c in practiceChars" :key="c" @click="showStrokeAnim(c)"
-                  :class="['w-10 h-10 rounded-lg text-lg font-medium transition-all border',
+                  :class="['w-10 h-10 rounded-lg text-lg font-medium transition-all border-2',
                     strokeAnimChar === c
-                      ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-400 text-primary-700 dark:text-primary-300 scale-110'
+                      ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-400 text-primary-700 dark:text-primary-300 shadow-sm'
                       : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-primary-300']">
                   {{ c }}
                 </button>
@@ -390,15 +422,27 @@ ${practiceChars.value.map(char => {
                   <span class="text-2xl font-bold text-gray-800 dark:text-white">{{ strokeAnimChar }}</span>
                   <span class="text-sm text-rose-500">{{ getCharPinyin(strokeAnimChar) }}</span>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 w-full">
                   <button @click="animateStroke"
-                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     播放笔顺
                   </button>
                   <button @click="quizStroke"
-                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    class="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     笔顺测验
                   </button>
+                </div>
+                <!-- 笔顺测验说明 -->
+                <div class="mt-3 w-full p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+                  <p class="font-medium mb-1">笔顺测验玩法：</p>
+                  <ol class="list-decimal list-inside space-y-0.5 text-amber-600 dark:text-amber-400">
+                    <li>点击"笔顺测验"按钮开始</li>
+                    <li>按正确笔顺在格子里依次点击每一笔</li>
+                    <li>写错会标红提示，写对自动进入下一笔</li>
+                    <li>全部写完即出成绩，零错误为满分</li>
+                  </ol>
                 </div>
               </div>
               <div v-else class="text-center py-10 text-gray-400 dark:text-gray-500">
@@ -492,23 +536,23 @@ ${practiceChars.value.map(char => {
   width: 72px;
   height: 72px;
   position: relative;
-  border: 1px solid #bbb;
+  border: 2px solid #999;
   flex-shrink: 0;
 }
 
-.grid-cell .tian-h, .grid-cell .tian-v { position: absolute; background: #d4d4d4; }
-.tian-h { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-0.5px); }
-.tian-v { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-0.5px); }
+.grid-cell .tian-h, .grid-cell .tian-v { position: absolute; background: none; }
+.tian-h { top: 50%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
+.tian-v { left: 50%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
 
-.grid-cell .mi-d1, .grid-cell .mi-d2 { position: absolute; background: #d4d4d4; height: 1px; width: 141%; top: 50%; left: 50%; }
+.grid-cell .mi-d1, .grid-cell .mi-d2 { position: absolute; background: none; height: 0; width: 141%; top: 50%; left: 50%; border-top: 1px dashed #ccc; }
 .mi-d1 { transform: translate(-50%, -50%) rotate(45deg); }
 .mi-d2 { transform: translate(-50%, -50%) rotate(-45deg); }
 
-.grid-cell .jiu-h1, .grid-cell .jiu-h2, .grid-cell .jiu-v1, .grid-cell .jiu-v2 { position: absolute; background: #d4d4d4; }
-.jiu-h1 { top: 33.33%; left: 0; right: 0; height: 1px; }
-.jiu-h2 { top: 66.66%; left: 0; right: 0; height: 1px; }
-.jiu-v1 { left: 33.33%; top: 0; bottom: 0; width: 1px; }
-.jiu-v2 { left: 66.66%; top: 0; bottom: 0; width: 1px; }
+.grid-cell .jiu-h1, .grid-cell .jiu-h2, .grid-cell .jiu-v1, .grid-cell .jiu-v2 { position: absolute; background: none; }
+.jiu-h1 { top: 33.33%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
+.jiu-h2 { top: 66.66%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
+.jiu-v1 { left: 33.33%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
+.jiu-v2 { left: 66.66%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
 
 .guide-char {
   position: absolute; inset: 0;
