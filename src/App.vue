@@ -17,5 +17,21 @@ import './composables/useTheme.js'
   </div>
 </template>
 
+<style>
+/* 防文字选择（仅生产环境，通过 body class 控制） */
+body.protected {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+body.protected input,
+body.protected textarea,
+body.protected [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+</style>
+
 <style scoped>
 </style>

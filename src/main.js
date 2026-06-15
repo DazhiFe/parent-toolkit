@@ -19,3 +19,30 @@ router.isReady().then(() => {
     setTimeout(() => loader.remove(), 600)
   }
 })
+
+// ─── 生产环境防盗版防护 ───
+if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  // 添加 protected class 启用 CSS 防选择
+  document.body.classList.add('protected')
+
+  // 禁用右键菜单
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault()
+  })
+
+  // 拦截常见快捷键（Ctrl+U 查看源码、Ctrl+S 保存、F12 开发者工具）
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+U
+    if (e.ctrlKey && e.key === 'u') {
+      e.preventDefault()
+    }
+    // Ctrl+S
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault()
+    }
+    // F12
+    if (e.key === 'F12') {
+      e.preventDefault()
+    }
+  })
+}

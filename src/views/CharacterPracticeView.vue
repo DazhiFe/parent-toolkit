@@ -13,7 +13,7 @@ const dataError = ref('')
 
 onMounted(async () => {
   try {
-    const res = await fetch('/data/characters.json')
+    const res = await fetch('/api/data/characters')
     if (!res.ok) throw new Error('加载失败')
     const data = await res.json()
     grades.value = data.grades

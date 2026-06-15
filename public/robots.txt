@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /feedback-admin
+Disallow: /data/_protected/
 
 Sitemap: https://bama.help/sitemap.xml

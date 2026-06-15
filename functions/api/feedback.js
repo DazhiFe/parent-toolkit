@@ -1,9 +1,12 @@
 export async function onRequest(context) {
   const { request, env } = context
 
-  // CORS headers
+  // CORS headers — 白名单限制
+  const requestOrigin = request.headers.get('Origin') || ''
+  const allowedOrigins = ['https://bama.help', 'https://www.bama.help', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173']
+  const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : 'https://bama.help'
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   }
