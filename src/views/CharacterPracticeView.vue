@@ -247,7 +247,7 @@ ${practiceChars.value.map(char => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-5xl mx-auto px-4">
+    <div class="max-w-[1200px] mx-auto px-4">
       <!-- 标题 -->
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">生字字帖生成器</h1>
