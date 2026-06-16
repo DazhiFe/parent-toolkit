@@ -206,16 +206,14 @@ ${practiceChars.value.map(char => {
   const py = showPinyin.value ? getCharPinyin(char) : ''
   const guideClass = guideStyle.value === 'outline' ? 'guide-outline' : guideStyle.value === 'dot' ? 'guide-dot' : ''
   const grid = gridType.value
-  let gridSvg = ''
-  const s = 68
-  const dash = 'stroke-dasharray="3,2"'
+  let gridHtml = ''
+  // CSS div方式画辅助线，打印渲染更可靠
   if (grid === 'tian') {
-    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${s/2}" x2="${s-2}" y2="${s/2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${s/2}" y1="2" x2="${s/2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/></svg>`
+    gridHtml = `<div style="position:absolute;top:50%;left:0;width:100%;height:0;border-top:1px dashed #ccc;"></div><div style="position:absolute;left:50%;top:0;height:100%;width:0;border-left:1px dashed #ccc;"></div>`
   } else if (grid === 'mi') {
-    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${s/2}" x2="${s-2}" y2="${s/2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${s/2}" y1="2" x2="${s/2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="2" y1="2" x2="${s-2}" y2="${s-2}" stroke="#bbb" stroke-width="0.6" ${dash}/><line x1="${s-2}" y1="2" x2="2" y2="${s-2}" stroke="#bbb" stroke-width="0.6" ${dash}/></svg>`
+    gridHtml = `<div style="position:absolute;top:50%;left:0;width:100%;height:0;border-top:1px dashed #ccc;"></div><div style="position:absolute;left:50%;top:0;height:100%;width:0;border-left:1px dashed #ccc;"></div><div style="position:absolute;inset:0;opacity:0.35;overflow:visible;"><div style="position:absolute;inset:0;transform:rotate(45deg);overflow:visible;"><div style="position:absolute;top:50%;left:-20%;width:140%;height:0;border-top:1px dashed #ccc;"></div></div><div style="position:absolute;inset:0;transform:rotate(-45deg);overflow:visible;"><div style="position:absolute;top:50%;left:-20%;width:140%;height:0;border-top:1px dashed #ccc;"></div></div></div>`
   } else if (grid === 'jiu') {
-    const t1 = (s / 3).toFixed(1), t2 = (s * 2 / 3).toFixed(1)
-    gridSvg = `<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="position:absolute;inset:0;pointer-events:none;"><line x1="2" y1="${t1}" x2="${s-2}" y2="${t1}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="2" y1="${t2}" x2="${s-2}" y2="${t2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${t1}" y1="2" x2="${t1}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/><line x1="${t2}" y1="2" x2="${t2}" y2="${s-2}" stroke="#bbb" stroke-width="0.8" ${dash}/></svg>`
+    gridHtml = `<div style="position:absolute;top:33.3%;left:0;width:100%;height:0;border-top:1px dashed #ccc;"></div><div style="position:absolute;top:66.6%;left:0;width:100%;height:0;border-top:1px dashed #ccc;"></div><div style="position:absolute;left:33.3%;top:0;height:100%;width:0;border-left:1px dashed #ccc;"></div><div style="position:absolute;left:66.6%;top:0;height:100%;width:0;border-left:1px dashed #ccc;"></div>`
   }
 
   const halfCount = guideStyle.value === 'half' ? Math.ceil(repeatCount.value / 2) : 0
@@ -225,7 +223,7 @@ ${practiceChars.value.map(char => {
     if (guideStyle.value === 'outline' && i === 0) showGuide = true
     if (guideStyle.value === 'dot') showGuide = true
     if (guideStyle.value === 'half' && i < halfCount) showGuide = true
-    cells.push(`<div class="grid-cell">${gridSvg}${showGuide ? `<div class="guide-char ${guideClass}">${char}</div>` : ''}</div>`)
+    cells.push(`<div class="grid-cell">${gridHtml}${showGuide ? `<div class="guide-char ${guideClass}">${char}</div>` : ''}</div>`)
   }
   return `<div class="char-section">
     <div class="char-header">
@@ -487,17 +485,15 @@ ${practiceChars.value.map(char => {
                     <div v-for="i in repeatCount" :key="i" class="grid-cell" :class="gridType">
                       <!-- 田字格 -->
                       <template v-if="gridType === 'tian'">
-                        <div class="tian-h"></div><div class="tian-v"></div>
+                        <svg class="grid-svg" viewBox="0 0 72 72"><line x1="3" y1="36" x2="69" y2="36" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="36" y1="3" x2="36" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/></svg>
                       </template>
                       <!-- 米字格 -->
                       <template v-else-if="gridType === 'mi'">
-                        <div class="tian-h"></div><div class="tian-v"></div>
-                        <div class="mi-d1"></div><div class="mi-d2"></div>
+                        <svg class="grid-svg" viewBox="0 0 72 72"><line x1="3" y1="36" x2="69" y2="36" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="36" y1="3" x2="36" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="3" y1="3" x2="69" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="69" y1="3" x2="3" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/></svg>
                       </template>
                       <!-- 九宫格 -->
                       <template v-else-if="gridType === 'jiu'">
-                        <div class="jiu-h1"></div><div class="jiu-h2"></div>
-                        <div class="jiu-v1"></div><div class="jiu-v2"></div>
+                        <svg class="grid-svg" viewBox="0 0 72 72"><line x1="3" y1="24" x2="69" y2="24" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="3" y1="48" x2="69" y2="48" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="24" y1="3" x2="24" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/><line x1="48" y1="3" x2="48" y2="69" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/></svg>
                       </template>
                       <!-- 引导字 -->
                       <span v-if="shouldShowGuide(i)" class="guide-char" :class="guideStyle === 'dot' ? 'guide-dot' : 'guide-outline'">{{ char }}</span>
@@ -540,19 +536,13 @@ ${practiceChars.value.map(char => {
   flex-shrink: 0;
 }
 
-.grid-cell .tian-h, .grid-cell .tian-v { position: absolute; background: none; }
-.tian-h { top: 50%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
-.tian-v { left: 50%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
-
-.grid-cell .mi-d1, .grid-cell .mi-d2 { position: absolute; background: none; height: 0; width: 141%; top: 50%; left: 50%; border-top: 1px dashed #ccc; }
-.mi-d1 { transform: translate(-50%, -50%) rotate(45deg); }
-.mi-d2 { transform: translate(-50%, -50%) rotate(-45deg); }
-
-.grid-cell .jiu-h1, .grid-cell .jiu-h2, .grid-cell .jiu-v1, .grid-cell .jiu-v2 { position: absolute; background: none; }
-.jiu-h1 { top: 33.33%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
-.jiu-h2 { top: 66.66%; left: 3px; right: 3px; height: 0; border-top: 1px dashed #ccc; }
-.jiu-v1 { left: 33.33%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
-.jiu-v2 { left: 66.66%; top: 3px; bottom: 3px; width: 0; border-left: 1px dashed #ccc; }
+.grid-cell .grid-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
 .guide-char {
   position: absolute; inset: 0;
