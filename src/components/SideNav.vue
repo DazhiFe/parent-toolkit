@@ -100,8 +100,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <aside class="hidden lg:block fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto z-40">
-    <div class="p-4">
+  <aside class="hidden lg:flex flex-col fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40">
+    <div class="p-4 flex-1 overflow-y-auto">
       <!-- <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{{ route.path === '/' ? '常用网站' : route.path === '/ai-tools' ? 'AI工具' : route.path === '/study-assistant' ? 'AI学习助手' : route.path === '/study-tools' ? '学习工具' : '成长工具' }}</h3> -->
       <nav>
         <ul class="space-y-2">
@@ -232,6 +232,16 @@ onUnmounted(() => {
           </li>
         </ul>
       </nav>
+    </div>
+    <!-- 底部外部链接 -->
+    <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50/50 dark:bg-gray-800/50">
+      <a href="https://mcn4hqasxwno.feishu.cn/wiki/VdLTwOdqmiJEg9kzY07cjtYTnxd?from=from_copylink"
+        target="_blank" rel="noopener noreferrer"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-400 transition-colors group">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 dark:text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8h18M3 8v8a4 4 0 004 4h7a4 4 0 004-4V8M3 8l1.5-3h11L17 8m4 0v3a3 3 0 01-3 3h-1"/></svg>
+        <span class="flex-1 font-medium">老魏的咖啡馆</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>
     </div>
   </aside>
 </template>

@@ -100,7 +100,7 @@ const tagColors = {
     <SideNav />
     
     <!-- 右侧内容区 -->
-    <div class="flex-1 lg:ml-64 px-4 py-8">
+    <div class="flex-1 min-w-0 lg:ml-64 px-4 py-8">
       <!-- 页面标题 -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold dark:text-white">爸妈工具箱</h1>

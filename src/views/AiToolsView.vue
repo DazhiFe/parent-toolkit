@@ -1,373 +1,168 @@
 <script setup>
 import { ref, computed } from 'vue'
 import SideNav from '../components/SideNav.vue'
+import { aiTools, aiToolCategories } from '../data/aiTools'
+import { useAiToolClicks } from '../composables/useAiToolClicks'
 
-const tools = [
-  {
-    id: 1,
-    name: '智能对话助手',
-    description: '支持多领域知识问答，帮助孩子解决学习和生活中的问题',
-    image: 'https://picsum.photos/seed/ai-chat-assistant/300/200.jpg',
-    category: 'AI对话',
-    tags: ['对话', '问答', '学习'],
-    ageRange: '6-18岁',
-    url: '#'
-  },
-  {
-    id: 2,
-    name: 'AI故事创作',
-    description: '根据孩子的喜好生成个性化故事，激发想象力',
-    image: 'https://picsum.photos/seed/ai-storyteller/300/200.jpg',
-    category: 'AI对话',
-    tags: ['故事', '创意', '想象'],
-    ageRange: '4-12岁',
-    url: '#'
-  },
-  {
-    id: 3,
-    name: 'AI绘画生成',
-    description: '输入文字描述，AI自动生成精美图片',
-    image: 'https://picsum.photos/seed/ai-image-generator/300/200.jpg',
-    category: 'AI图形',
-    tags: ['绘画', '创作', '艺术'],
-    ageRange: '5-18岁',
-    url: '#'
-  },
-  {
-    id: 4,
-    name: 'AI头像生成',
-    description: '创建个性化卡通或写实头像，培养艺术审美',
-    image: 'https://picsum.photos/seed/ai-avatar-creator/300/200.jpg',
-    category: 'AI图形',
-    tags: ['头像', '设计', '个性化'],
-    ageRange: '8-18岁',
-    url: '#'
-  },
-  {
-    id: 5,
-    name: 'AI视频制作',
-    description: '通过简单的文字或图片创建有趣的短视频',
-    image: 'https://picsum.photos/seed/ai-video-creator/300/200.jpg',
-    category: 'AI视频',
-    tags: ['视频', '创作', '媒体'],
-    ageRange: '10-18岁',
-    url: '#'
-  },
-  {
-    id: 6,
-    name: 'AI动画生成',
-    description: '创建个性化动画角色和简单动画故事',
-    image: 'https://picsum.photos/seed/ai-animation/300/200.jpg',
-    category: 'AI视频',
-    tags: ['动画', '故事', '创意'],
-    ageRange: '8-16岁',
-    url: '#'
-  },
-  {
-    id: 7,
-    name: 'AI作业辅导',
-    description: '智能解答作业问题，提供详细解题思路',
-    image: 'https://picsum.photos/seed/ai-homework-helper/300/200.jpg',
-    category: 'AI学习',
-    tags: ['作业', '辅导', '学习'],
-    ageRange: '8-18岁',
-    url: '#'
-  },
-  {
-    id: 8,
-    name: 'AI知识图谱',
-    description: '可视化知识结构，帮助理解复杂概念',
-    image: 'https://picsum.photos/seed/ai-knowledge-map/300/200.jpg',
-    category: 'AI学习',
-    tags: ['知识', '图谱', '理解'],
-    ageRange: '10-18岁',
-    url: '#'
-  },
-  {
-    id: 9,
-    name: 'AI音乐创作',
-    description: '根据喜好生成个性化音乐，培养音乐素养',
-    image: 'https://picsum.photos/seed/ai-music-generator/300/200.jpg',
-    category: 'AI音频',
-    tags: ['音乐', '创作', '艺术'],
-    ageRange: '6-18岁',
-    url: '#'
-  },
-  {
-    id: 10,
-    name: 'AI语音变声',
-    description: '有趣的语音处理工具，用于创意表达',
-    image: 'https://picsum.photos/seed/ai-voice-changer/300/200.jpg',
-    category: 'AI音频',
-    tags: ['语音', '变声', '创意'],
-    ageRange: '8-16岁',
-    url: '#'
-  },
-  {
-    id: 11,
-    name: 'AI作文助手',
-    description: '帮助孩子提升写作能力，提供创意灵感和写作指导',
-    image: 'https://picsum.photos/seed/ai-writing/300/200.jpg',
-    category: '写作辅助',
-    tags: ['写作', '作文', '创意'],
-    ageRange: '8-18岁',
-    url: '#'
-  },
-  {
-    id: 12,
-    name: '数学解题工具',
-    description: 'AI驱动的数学问题解答器，提供详细步骤和解题思路',
-    image: 'https://picsum.photos/seed/ai-math/300/200.jpg',
-    category: '数学辅助',
-    tags: ['数学', '解题', '学习'],
-    ageRange: '10-18岁',
-    url: '#'
-  },
-  {
-    id: 13,
-    name: '英语口语练习',
-    description: '与AI对话练习英语口语，提升语言表达能力和自信心',
-    image: 'https://picsum.photos/seed/ai-language/300/200.jpg',
-    category: '语言学习',
-    tags: ['英语', '口语', '练习'],
-    ageRange: '6-18岁',
-    url: '#'
-  },
-  {
-    id: 14,
-    name: '绘画创作助手',
-    description: 'AI绘画工具，激发孩子的艺术创造力和想象力',
-    image: 'https://picsum.photos/seed/ai-art/300/200.jpg',
-    category: '艺术创作',
-    tags: ['绘画', '艺术', '创意'],
-    ageRange: '5-18岁',
-    url: '#'
-  },
-  {
-    id: 15,
-    name: '编程学习平台',
-    description: '通过AI交互式教学，让孩子轻松学习编程基础',
-    image: 'https://picsum.photos/seed/ai-coding/300/200.jpg',
-    category: '编程教育',
-    tags: ['编程', '学习', '教育'],
-    ageRange: '10-18岁',
-    url: '#'
-  },
-  {
-    id: 16,
-    name: '科学实验模拟器',
-    description: '虚拟科学实验室，安全探索科学原理和现象',
-    image: 'https://picsum.photos/seed/ai-science/300/200.jpg',
-    category: '科学教育',
-    tags: ['科学', '实验', '探索'],
-    ageRange: '8-18岁',
-    url: '#'
-  }
-]
+const { recordClick, isFrequent, getSortedTools, hideTool, showTool, isHidden, isDead, reportDead, restoreDead } = useAiToolClicks()
 
-const newsSites = [
-  {
-    id: 1,
-    name: 'AIHOT',
-    description: 'AI热点资讯聚合平台，汇集全球AI行业最新动态',
-    url: 'https://aihot.virxact.com/',
-    letter: 'A',
-    color: 'red'
-  },
-  {
-    id: 2,
-    name: '鱼皮AI导航',
-    description: '程序员鱼皮整理的AI工具导航和学习资源',
-    url: 'https://ai.codefather.cn/',
-    letter: '鱼',
-    color: 'blue'
-  }
-]
+const showManagePanel = ref(false)
 
-const getColorStyle = (color, type) => {
-  const styles = {
-    red: { bg: 'bg-red-500', text: 'text-white' },
-    blue: { bg: 'bg-blue-500', text: 'text-white' }
+// 过滤掉 'all' 分类，只保留实际分组（用于分区展示）
+const sectionCategories = computed(() => aiToolCategories.filter(c => c.id !== 'all'))
+
+// 每个分类对应的工具列表（已隐藏不显示，按热度+tag排序）
+const toolsByCategory = computed(() => {
+  const map = {}
+  for (const cat of sectionCategories.value) {
+    const tools = aiTools.filter(t => t.category === cat.id && !isHidden(t.id))
+    map[cat.id] = getSortedTools(tools)
   }
-  return styles[color] ? styles[color][type] : ''
+  return map
+})
+
+// 锚点 id 与 SideNav 一致
+const sectionIdMap = {
+  chat: 'ai-chat',
+  news: 'ai-news',
+  image: 'ai-image',
+  video: 'ai-video',
+  learning: 'ai-learning',
+  audio: 'ai-audio',
 }
 
-const categories = computed(() => {
-  const allCategories = tools.map(tool => tool.category)
-  return ['全部', ...new Set(allCategories)]
-})
+const hiddenTools = computed(() => aiTools.filter(t => isHidden(t.id)))
+const deadTools = computed(() => aiTools.filter(t => isDead(t.id)))
+const totalVisible = computed(() => aiTools.filter(t => !isHidden(t.id)).length)
 
-const selectedCategory = ref('全部')
+const handleToolClick = (toolId) => {
+  recordClick(toolId)
+}
 
-const filteredTools = computed(() => {
-  if (selectedCategory.value === '全部') {
-    return tools
-  }
-  return tools.filter(tool => tool.category === selectedCategory.value)
-})
+// 文字头像背景色映射
+const letterBgMap = {
+  blue:   'bg-gradient-to-br from-blue-400 to-blue-600',
+  purple: 'bg-gradient-to-br from-purple-400 to-purple-600',
+  indigo: 'bg-gradient-to-br from-indigo-400 to-indigo-600',
+  red:    'bg-gradient-to-br from-red-400 to-red-600',
+  cyan:   'bg-gradient-to-br from-cyan-400 to-cyan-600',
+  orange: 'bg-gradient-to-br from-orange-400 to-orange-600',
+  green:  'bg-gradient-to-br from-green-400 to-green-600',
+  pink:   'bg-gradient-to-br from-pink-400 to-pink-600',
+  amber:  'bg-gradient-to-br from-amber-400 to-amber-600',
+}
+
+const getLetterBg = (color) => letterBgMap[color] || letterBgMap.blue
+
+// tag 标签颜色（与 HomeView 一致）
+const tagColors = {
+  '热门': 'bg-red-500 text-white',
+  '官方': 'bg-blue-500 text-white',
+  '免费': 'bg-green-500 text-white',
+}
 </script>
 
 <template>
   <div class="flex min-h-screen">
     <SideNav />
-    
-    <div class="flex-1 lg:ml-64 px-4 py-8">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold dark:text-white">AI工具箱</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-2">探索各种AI工具，助力孩子学习和成长</p>
+
+    <div class="flex-1 min-w-0 lg:ml-64 px-4 py-8">
+      <!-- 页面标题 -->
+      <div class="flex items-start justify-between mb-8 flex-wrap gap-3">
+        <div>
+          <h1 class="text-3xl font-bold dark:text-white">AI工具箱</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">探索各种AI工具，助力孩子学习和成长</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-400 dark:text-gray-500">{{ totalVisible }} 个工具</span>
+          <button @click="showManagePanel = !showManagePanel"
+            :class="['text-sm px-3 py-1 rounded-lg border transition-colors',
+              showManagePanel ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400' : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:text-primary-500']">
+            管理
+          </button>
+        </div>
       </div>
-      
-      <section id="ai-chat" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI对话助手</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">豆</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">豆包</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">字节跳动出品，支持多领域知识问答</p>
-            <a href="https://www.doubao.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
 
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">千</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">千问</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">阿里云出品，强大的语言理解与生成能力</p>
-            <a href="https://qianwen.aliyun.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
-
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">智</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">智谱清言</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">智谱AI出品，提供高质量对话体验</p>
-            <a href="https://chatglm.cn" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
-
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">文</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">文心一言</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">百度出品，强大的知识理解与生成能力</p>
-            <a href="https://yiyan.baidu.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
-
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">D</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">DeepSeek</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">探索未至之境，强大的AI推理能力</p>
-            <a href="https://chat.deepseek.com/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
+      <!-- 管理面板 -->
+      <div v-if="showManagePanel" class="mb-8 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div v-if="hiddenTools.length" class="mb-4">
+          <h4 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">已隐藏的工具</h4>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="tool in hiddenTools" :key="'hidden-'+tool.id" @click="showTool(tool.id)"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:border-green-300 hover:text-green-600 dark:hover:text-green-400 transition-colors">
+              <span>{{ tool.name }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
           </div>
         </div>
-      </section>
-
-      <section id="ai-news" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI资讯</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div v-for="site in newsSites" :key="site.id" class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div :class="['w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg', getColorStyle(site.color, 'bg')]">
-                <span :class="['text-2xl font-bold', getColorStyle(site.color, 'text')]">{{ site.letter }}</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">{{ site.name }}</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">{{ site.description }}</p>
-            <a :href="site.url" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
+        <div v-if="deadTools.length">
+          <h4 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">已标记失效</h4>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="tool in deadTools" :key="'dead-'+tool.id" @click="restoreDead(tool.id)"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 hover:border-green-300 hover:text-green-600 transition-colors">
+              <span class="line-through">{{ tool.name }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
           </div>
         </div>
-      </section>
+        <div v-if="!hiddenTools.length && !deadTools.length" class="text-sm text-gray-400 dark:text-gray-500">
+          暂无隐藏或失效的工具。鼠标悬停在工具卡片上可看到操作按钮。
+        </div>
+      </div>
 
-      <section id="ai-image" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI图形生成</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+      <!-- 按分类分区展示，左侧导航锚点跳转 -->
+      <section v-for="cat in sectionCategories" :key="cat.id" :id="sectionIdMap[cat.id]" class="mb-12">
+        <h2 class="text-2xl font-semibold mb-6 dark:text-white">{{ cat.name }}</h2>
+
+        <div v-if="toolsByCategory[cat.id] && toolsByCategory[cat.id].length"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+          <div v-for="tool in toolsByCategory[cat.id]" :key="tool.id"
+            class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 relative group">
+            <!-- 常用角标 -->
+            <div v-if="isFrequent(tool.id)" class="absolute top-1.5 left-1.5 z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400 drop-shadow" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+            </div>
+            <!-- 失效标记 -->
+            <div v-if="isDead(tool.id)" class="absolute top-1.5 left-1.5 z-10">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500 text-white">失效</span>
+            </div>
+            <!-- tag 标签 -->
+            <div v-if="tool.tag && !isDead(tool.id)" :class="['absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium z-10', tagColors[tool.tag] || 'bg-gray-500 text-white']">
+              {{ tool.tag }}
+            </div>
+            <!-- 操作按钮（hover显示） -->
+            <div class="absolute top-2 right-2 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" :style="tool.tag && !isDead(tool.id) ? 'top:8px;right:8px' : ''">
+              <button v-if="!isDead(tool.id)" @click.stop="reportDead(tool.id)" title="报告工具失效"
+                class="w-6 h-6 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-400 hover:text-red-500 shadow-sm border border-gray-200 dark:border-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+              </button>
+              <button @click.stop="hideTool(tool.id)" title="隐藏此工具"
+                class="w-6 h-6 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
             <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">即</span>
+              <div :class="['w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg', getLetterBg(tool.color)]">
+                <span class="text-white text-2xl font-bold">{{ tool.letter }}</span>
               </div>
             </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">即梦AI</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">一站式AI创作平台，支持图片生成、视频生成、数字人等功能</p>
-            <a href="https://jimeng.jianying.com/ai-tool/generate?enter_from=ai_feature&from_page=explore&ai_feature_name=image" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white" :class="{ 'line-through text-gray-400': isDead(tool.id) }">{{ tool.name }}</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate" :title="tool.description">{{ tool.description }}</p>
+            <a :href="tool.url" target="_blank" rel="noopener noreferrer" @click="handleToolClick(tool.id)"
+              class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">
+              访问工具 →
+            </a>
           </div>
         </div>
-      </section>
 
-      <section id="ai-video" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI视频生成</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">即</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">即梦AI</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">一站式AI创作平台，支持图片生成、视频生成、数字人等功能</p>
-            <a href="https://jimeng.jianying.com/ai-tool/generate?enter_from=ai_feature&from_page=explore&ai_feature_name=omniReference" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
+        <!-- 该分类无工具时的占位 -->
+        <div v-else class="text-sm text-gray-400 dark:text-gray-500 py-6 text-center bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+          该分类暂无工具
         </div>
       </section>
-
-      <section id="ai-learning" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI学习资源</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">飞</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">飞行社</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">飞书社区，AI学习资源和实践案例分享平台</p>
-            <a href="https://www.feishu.cn/community" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问网站 →</a>
-          </div>
-
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">象</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">飞象老师</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">AI教学动画和互动课件制作平台</p>
-            <a href="https://www.feixianglaoshi.com/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
-        </div>
-      </section>
-
-      <section id="ai-audio" class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 dark:text-white">AI音频处理</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
-          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-center h-24 rounded-lg">
-              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg">
-                <span class="text-white text-2xl font-bold">千</span>
-              </div>
-            </div>
-            <h3 class="text-lg font-semibold mb-2 dark:text-white">千问音视频速读</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">AI快速提取音视频重点内容，支持多种格式</p>
-            <a href="https://www.tongyi.com/discover/audioread" target="_blank" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">访问工具 →</a>
-          </div>
-        </div>
-      </section>
-
     </div>
   </div>
 </template>

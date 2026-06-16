@@ -52,16 +52,16 @@ const guideStyle = ref('outline')
 const paperDirection = ref('portrait')
 
 const gridTypeOptions = [
-  { value: 'tian', label: '田字格' },
-  { value: 'mi', label: '米字格' },
-  { value: 'jiu', label: '九宫格' }
+  { value: 'tian', label: '田字格', desc: '十字虚线' },
+  { value: 'mi', label: '米字格', desc: '十字+对角线' },
+  { value: 'jiu', label: '九宫格', desc: '三等分线' }
 ]
 
 const guideStyleOptions = [
-  { value: 'outline', label: '描红（首格浅色底字）' },
-  { value: 'dot', label: '点阵（虚线描摹）' },
-  { value: 'half', label: '半描红（前半描红后半空白）' },
-  { value: 'none', label: '空白格' }
+  { value: 'outline', label: '描红', desc: '首格浅色底字' },
+  { value: 'dot', label: '点阵', desc: '虚线描摹' },
+  { value: 'half', label: '半描红', desc: '前半描红后半空白' },
+  { value: 'none', label: '空白', desc: '无引导' }
 ]
 
 // ─── 预览 ───
@@ -82,17 +82,6 @@ watch(customChars, (val) => {
     showResult.value = true
   }
 })
-
-const generateSheet = () => {
-  if (!practiceChars.value.length) {
-    toast.warning('请先选择课文或输入生字')
-    return
-  }
-  showResult.value = true
-  nextTick(() => {
-    document.getElementById('sheet-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
-}
 
 const clearAll = () => {
   customChars.value = ''
@@ -244,12 +233,12 @@ ${practiceChars.value.map(char => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
     <div class="max-w-[1200px] mx-auto px-4">
       <!-- 标题 -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">生字字帖生成器</h1>
-        <p class="text-gray-600 dark:text-gray-400">按年级课文选择或自由输入，生成田字格字帖，支持笔顺动画</p>
+      <div class="text-center mb-5">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-1">生字字帖生成器</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">按年级课文选择或自由输入，生成田字格字帖，支持笔顺动画</p>
       </div>
 
       <!-- 加载状态 -->
@@ -260,150 +249,181 @@ ${practiceChars.value.map(char => {
       <div v-else-if="dataError" class="text-center py-20 text-red-500">{{ dataError }}</div>
 
       <template v-else>
-        <!-- 选择模式 -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-          <div class="flex gap-2 mb-5">
+        <!-- 选择 + 设置 合并区 -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 mb-4">
+          <!-- 输入模式切换 -->
+          <div class="flex gap-2 mb-3">
             <button @click="inputMode = 'grade'"
-              :class="['px-5 py-2 rounded-lg font-medium transition-colors', inputMode === 'grade' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300']">
+              :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-colors', inputMode === 'grade' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300']">
               按年级选择
             </button>
             <button @click="inputMode = 'custom'"
-              :class="['px-5 py-2 rounded-lg font-medium transition-colors', inputMode === 'custom' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300']">
+              :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-colors', inputMode === 'custom' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300']">
               自由输入
             </button>
           </div>
 
           <!-- 按年级选择 -->
-          <div v-if="inputMode === 'grade'" class="space-y-4">
-            <!-- 年级标签：胶囊样式 + 书本图标 -->
+          <div v-if="inputMode === 'grade'" class="space-y-3 mb-4">
+            <!-- 年级标签 -->
             <div>
-              <div class="flex items-center gap-2 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">选择年级</span>
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">选择年级</span>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
                 <button v-for="g in grades" :key="g.id" @click="selectedGradeId = g.id; selectedLessonId = ''"
-                  :class="['px-3 py-2.5 rounded-full text-sm font-medium transition-all border-2',
+                  :class="['px-2 py-2 rounded-full text-sm font-medium transition-all border-2',
                     selectedGradeId === g.id
-                      ? 'bg-primary-500 dark:bg-primary-600 border-primary-500 dark:border-primary-600 text-white shadow-md shadow-primary-200 dark:shadow-primary-900/30 scale-105'
-                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300 hover:shadow-sm']">
+                      ? 'bg-primary-500 dark:bg-primary-600 border-primary-500 dark:border-primary-600 text-white shadow-sm scale-105'
+                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300']">
                   {{ g.name }}
                 </button>
               </div>
             </div>
 
-            <!-- 课文标签：圆角矩形 + 文档图标 -->
+            <!-- 课文标签 -->
             <div v-if="lessons.length">
-              <div class="flex items-center gap-2 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">选择课文</span>
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">选择课文</span>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
                 <button v-for="l in lessons" :key="l.id" @click="selectedLessonId = l.id"
-                  :class="['px-3 py-2 rounded-lg text-sm transition-all border',
+                  :class="['px-2 py-1.5 rounded-lg text-sm transition-all border',
                     selectedLessonId === l.id
-                      ? 'bg-amber-500 dark:bg-amber-600 border-amber-500 dark:border-amber-600 text-white shadow-md shadow-amber-200 dark:shadow-amber-900/30 scale-105'
-                      : 'bg-amber-50/60 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 hover:border-amber-400 hover:shadow-sm']">
+                      ? 'bg-amber-500 dark:bg-amber-600 border-amber-500 dark:border-amber-600 text-white shadow-sm scale-105'
+                      : 'bg-amber-50/60 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 hover:border-amber-400']">
                   {{ l.name }}
                 </button>
               </div>
             </div>
 
-            <div v-if="practiceChars.length" class="flex flex-wrap gap-2 pt-2">
+            <div v-if="practiceChars.length" class="flex flex-wrap gap-1.5 pt-1">
               <span v-for="c in practiceChars" :key="c"
-                class="inline-flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg text-lg font-medium text-gray-800 dark:text-gray-200">
+                class="inline-flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded text-base font-medium text-gray-800 dark:text-gray-200">
                 {{ c }}
               </span>
-              <span class="text-sm text-gray-500 dark:text-gray-400 self-center ml-2">共 {{ practiceChars.length }} 字</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 self-center ml-1">共 {{ practiceChars.length }} 字</span>
             </div>
           </div>
 
           <!-- 自由输入 -->
-          <div v-else>
+          <div v-else class="mb-4">
             <textarea
               v-model="customChars"
-              class="w-full h-24 p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xl tracking-widest"
+              class="w-full h-20 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg tracking-widest"
               placeholder="请输入要练习的汉字，例如：天地人和春夏秋冬"
             ></textarea>
-            <p v-if="practiceChars.length" class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <p v-if="practiceChars.length" class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
               已识别 {{ practiceChars.length }} 个不重复汉字：{{ practiceChars.join(' ') }}
             </p>
           </div>
+
+          <!-- 字帖设置 -->
+          <div class="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
+            <h2 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">字帖设置</h2>
+
+            <!-- 格子类型 - 可视化按钮 -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">格子类型</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button v-for="opt in gridTypeOptions" :key="opt.value" @click="gridType = opt.value"
+                  :class="['flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-all',
+                    gridType === opt.value
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-primary-300']">
+                  <!-- 格子缩略图 -->
+                  <div class="w-8 h-8 relative border-2 rounded-sm"
+                    :class="gridType === opt.value ? 'border-primary-400' : 'border-gray-400'">
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 40 40">
+                      <line v-if="opt.value === 'tian' || opt.value === 'mi'" x1="2" y1="20" x2="38" y2="20" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'tian' || opt.value === 'mi'" x1="20" y1="2" x2="20" y2="38" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'mi'" x1="2" y1="2" x2="38" y2="38" stroke="#ccc" stroke-width="0.6" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'mi'" x1="38" y1="2" x2="2" y2="38" stroke="#ccc" stroke-width="0.6" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'jiu'" x1="2" y1="13.3" x2="38" y2="13.3" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'jiu'" x1="2" y1="26.6" x2="38" y2="26.6" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'jiu'" x1="13.3" y1="2" x2="13.3" y2="38" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                      <line v-if="opt.value === 'jiu'" x1="26.6" y1="2" x2="26.6" y2="38" stroke="#bbb" stroke-width="0.8" stroke-dasharray="2,1"/>
+                    </svg>
+                  </div>
+                  <span class="text-xs font-medium" :class="gridType === opt.value ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-300'">{{ opt.label }}</span>
+                  <span class="text-[10px] text-gray-400">{{ opt.desc }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 引导方式 - 可视化按钮 -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">引导方式</label>
+              <div class="grid grid-cols-4 gap-1.5">
+                <button v-for="opt in guideStyleOptions" :key="opt.value" @click="guideStyle = opt.value"
+                  :class="['flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-all',
+                    guideStyle === opt.value
+                      ? 'border-rose-400 bg-rose-50 dark:bg-rose-900/20 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-rose-300']">
+                  <span class="text-xs font-medium" :class="guideStyle === opt.value ? 'text-rose-600 dark:text-rose-400' : 'text-gray-600 dark:text-gray-300'">{{ opt.label }}</span>
+                  <span class="text-[10px] text-gray-400">{{ opt.desc }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 其他设置 - 一行排列 -->
+            <div class="flex flex-wrap items-end gap-3">
+              <div class="w-24">
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">重复次数</label>
+                <select v-model.number="repeatCount"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
+                  <option :value="4">4 次</option>
+                  <option :value="6">6 次</option>
+                  <option :value="8">8 次</option>
+                  <option :value="10">10 次</option>
+                  <option :value="12">12 次</option>
+                </select>
+              </div>
+              <div class="w-28">
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">纸张方向</label>
+                <select v-model="paperDirection"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
+                  <option value="portrait">纵向（A4）</option>
+                  <option value="landscape">横向（A4）</option>
+                </select>
+              </div>
+              <label class="flex items-center gap-1.5 cursor-pointer py-1.5">
+                <input type="checkbox" v-model="showPinyin" class="w-3.5 h-3.5 text-primary-600 rounded" />
+                <span class="text-xs text-gray-600 dark:text-gray-400">显示拼音</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer py-1.5">
+                <input type="checkbox" v-model="showStrokeOrder" class="w-3.5 h-3.5 text-primary-600 rounded" />
+                <span class="text-xs text-gray-600 dark:text-gray-400">笔顺演示</span>
+              </label>
+              <button @click="clearAll"
+                class="ml-auto px-3 py-1.5 text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors">
+                清空重选
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- 字帖设置 -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">字帖设置</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">格子类型</label>
-              <select v-model="gridType"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
-                <option v-for="opt in gridTypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">引导方式</label>
-              <select v-model="guideStyle"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
-                <option v-for="opt in guideStyleOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">每字重复次数</label>
-              <select v-model.number="repeatCount"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
-                <option :value="4">4 次</option>
-                <option :value="6">6 次</option>
-                <option :value="8">8 次</option>
-                <option :value="10">10 次</option>
-                <option :value="12">12 次</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">纸张方向</label>
-              <select v-model="paperDirection"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
-                <option value="portrait">纵向（A4）</option>
-                <option value="landscape">横向（A4）</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-6 pt-6">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" v-model="showPinyin" class="w-4 h-4 text-primary-600 rounded" />
-                <span class="text-sm text-gray-700 dark:text-gray-300">显示拼音</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" v-model="showStrokeOrder" class="w-4 h-4 text-primary-600 rounded" />
-                <span class="text-sm text-gray-700 dark:text-gray-300">笔顺演示</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="flex gap-3 mt-5">
-            <button @click="generateSheet"
-              class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
-              生成字帖
-            </button>
-            <button @click="clearAll"
-              class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors">
-              清空
-            </button>
-          </div>
+        <!-- 空状态引导 -->
+        <div v-if="!showResult || !practiceChars.length" class="text-center py-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          <p class="text-gray-400 dark:text-gray-500 text-base mb-0.5">选择课文或输入生字</p>
+          <p class="text-gray-300 dark:text-gray-600 text-xs">字帖预览将自动生成</p>
         </div>
 
         <!-- 字帖预览 + 笔顺演示 -->
-        <div v-if="showResult && practiceChars.length" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div v-if="showResult && practiceChars.length" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- 笔顺演示区 -->
           <div v-if="showStrokeOrder" class="lg:col-span-1">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
-              <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">笔顺演示</h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">点击生字查看笔顺动画</p>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sticky top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+              <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-2">笔顺演示</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">点击生字查看笔顺动画</p>
 
               <!-- 生字选择 -->
-              <div class="flex flex-wrap gap-2.5 mb-4 max-h-40 overflow-y-auto p-1">
+              <div class="flex flex-wrap gap-1.5 mb-3 max-h-32 overflow-y-auto p-0.5">
                 <button v-for="c in practiceChars" :key="c" @click="showStrokeAnim(c)"
-                  :class="['w-10 h-10 rounded-lg text-lg font-medium transition-all border-2',
+                  :class="['w-9 h-9 rounded text-base font-medium transition-all border-2',
                     strokeAnimChar === c
                       ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-400 text-primary-700 dark:text-primary-300 shadow-sm'
                       : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-primary-300']">
@@ -413,28 +433,40 @@ ${practiceChars.value.map(char => {
 
               <!-- 动画区域 -->
               <div v-if="strokeAnimChar" class="flex flex-col items-center">
-                <div class="bg-white rounded-xl border-2 border-gray-200 p-2 mb-3">
-                  <div id="stroke-anim-target"></div>
+                <div class="relative bg-white rounded-lg border-2 border-gray-300 p-1.5 mb-2">
+                  <!-- 格子辅助线 -->
+                  <div class="absolute inset-1.5 pointer-events-none z-0">
+                    <template v-if="gridType === 'tian'">
+                      <svg class="w-full h-full" viewBox="0 0 200 200"><line x1="6" y1="100" x2="194" y2="100" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="100" y1="6" x2="100" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/></svg>
+                    </template>
+                    <template v-else-if="gridType === 'mi'">
+                      <svg class="w-full h-full" viewBox="0 0 200 200"><line x1="6" y1="100" x2="194" y2="100" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="100" y1="6" x2="100" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="6" y1="6" x2="194" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="194" y1="6" x2="6" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/></svg>
+                    </template>
+                    <template v-else-if="gridType === 'jiu'">
+                      <svg class="w-full h-full" viewBox="0 0 200 200"><line x1="6" y1="66.7" x2="194" y2="66.7" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="6" y1="133.3" x2="194" y2="133.3" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="66.7" y1="6" x2="66.7" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/><line x1="133.3" y1="6" x2="133.3" y2="194" stroke="#ccc" stroke-width="1" stroke-dasharray="6,3"/></svg>
+                    </template>
+                  </div>
+                  <div id="stroke-anim-target" class="relative z-10"></div>
                 </div>
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="text-2xl font-bold text-gray-800 dark:text-white">{{ strokeAnimChar }}</span>
-                  <span class="text-sm text-rose-500">{{ getCharPinyin(strokeAnimChar) }}</span>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-xl font-bold text-gray-800 dark:text-white">{{ strokeAnimChar }}</span>
+                  <span class="text-xs text-rose-500">{{ getCharPinyin(strokeAnimChar) }}</span>
                 </div>
                 <div class="flex gap-2 w-full">
                   <button @click="animateStroke"
-                    class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     播放笔顺
                   </button>
                   <button @click="quizStroke"
-                    class="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    class="flex-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     笔顺测验
                   </button>
                 </div>
                 <!-- 笔顺测验说明 -->
-                <div class="mt-3 w-full p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-xs text-amber-700 dark:text-amber-300">
-                  <p class="font-medium mb-1">笔顺测验玩法：</p>
+                <div class="mt-2 w-full p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-[11px] text-amber-700 dark:text-amber-300">
+                  <p class="font-medium mb-0.5">笔顺测验玩法：</p>
                   <ol class="list-decimal list-inside space-y-0.5 text-amber-600 dark:text-amber-400">
                     <li>点击"笔顺测验"按钮开始</li>
                     <li>按正确笔顺在格子里依次点击每一笔</li>
@@ -443,30 +475,31 @@ ${practiceChars.value.map(char => {
                   </ol>
                 </div>
               </div>
-              <div v-else class="text-center py-10 text-gray-400 dark:text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                <p class="text-sm">点击上方生字开始</p>
+              <div v-else class="text-center py-8 text-gray-400 dark:text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-1.5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                <p class="text-xs">点击上方生字开始</p>
               </div>
             </div>
           </div>
 
           <!-- 字帖内容 -->
           <div :class="[showStrokeOrder ? 'lg:col-span-2' : 'lg:col-span-3']">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">字帖预览</h2>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+              <!-- 打印按钮 - 置顶醒目 -->
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-semibold text-gray-800 dark:text-white">字帖预览</h2>
                 <button @click="printSheet"
-                  class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2">
+                  class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-green-200 dark:hover:shadow-green-900/30 flex items-center gap-1.5 text-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                   打印字帖
                 </button>
               </div>
 
-              <div id="sheet-content" class="p-6 bg-white rounded-lg border border-gray-200">
+              <div id="sheet-content" class="p-4 bg-white rounded-lg border border-gray-200">
                 <!-- 标题栏 -->
-                <div class="text-center mb-5">
-                  <div class="text-xl font-bold text-gray-800">生字练习字帖</div>
-                  <div class="flex justify-center gap-8 mt-2 text-xs text-gray-400">
+                <div class="text-center mb-4">
+                  <div class="text-lg font-bold text-gray-800">生字练习字帖</div>
+                  <div class="flex justify-center gap-6 mt-1 text-xs text-gray-400">
                     <span>姓名：________</span>
                     <span>日期：________</span>
                     <span>评价：☆☆☆</span>
@@ -474,12 +507,12 @@ ${practiceChars.value.map(char => {
                 </div>
 
                 <!-- 每个字的练习区 -->
-                <div v-for="(char, idx) in practiceChars" :key="idx" class="char-section mb-6">
-                  <div class="flex items-baseline gap-2 mb-1">
-                    <span v-if="showPinyin" class="text-base text-rose-500 font-medium">{{ getCharPinyin(char) }}</span>
-                    <span class="text-sm text-gray-500">{{ char }}</span>
+                <div v-for="(char, idx) in practiceChars" :key="idx" class="char-section mb-4">
+                  <div class="flex items-baseline gap-1.5 mb-0.5">
+                    <span v-if="showPinyin" class="text-sm text-rose-500 font-medium">{{ getCharPinyin(char) }}</span>
+                    <span class="text-xs text-gray-500">{{ char }}</span>
                     <button v-if="showStrokeOrder" @click="showStrokeAnim(char)"
-                      class="text-xs text-primary-500 hover:text-primary-700 ml-2">看笔顺</button>
+                      class="text-[10px] text-primary-500 hover:text-primary-700 ml-1">看笔顺</button>
                   </div>
                   <div class="flex gap-1 flex-wrap">
                     <div v-for="i in repeatCount" :key="i" class="grid-cell" :class="gridType">
@@ -503,9 +536,9 @@ ${practiceChars.value.map(char => {
               </div>
 
               <!-- 使用说明 -->
-              <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">使用说明</h3>
-                <ul class="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+              <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h3 class="text-xs font-medium text-blue-800 dark:text-blue-300 mb-1.5">使用说明</h3>
+                <ul class="text-xs text-blue-700 dark:text-blue-400 space-y-0.5">
                   <li>• 支持按年级/课文选择生字，也可自由输入</li>
                   <li>• 点击"看笔顺"可查看该字的笔顺动画演示</li>
                   <li>• 笔顺测验模式：按正确笔顺在格子里书写</li>

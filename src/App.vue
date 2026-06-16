@@ -31,6 +31,20 @@ body.protected [contenteditable="true"] {
   -moz-user-select: text;
   user-select: text;
 }
+
+/* 全局输入框焦点样式 - 替换默认黑色边框 */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  box-shadow: none;
+}
 </style>
 
 <style scoped>
