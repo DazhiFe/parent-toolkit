@@ -11,7 +11,7 @@ const article = ref(null) // { title, author, publishTime, contentHtml, sourceUr
 
 // 打印选项
 const fontSize = ref('medium') // small / medium / large
-const showImages = ref(true)
+const showImages = ref(false)
 const removeAds = ref(true)
 const showHeaderFooter = ref(true)
 
@@ -27,6 +27,12 @@ const isValidWechatUrl = (url) => {
 const stripHtml = (text) => {
   if (!text) return ''
   return text.replace(/<[^>]+>/g, '').trim()
+}
+
+const handleImageError = (event) => {
+  const img = event.target
+  img.dataset.printBroken = '1'
+  img.remove()
 }
 
 // ========== 链接模式：通过API抓取 ==========
@@ -252,9 +258,12 @@ const cleanedContent = computed(() => {
     })
   }
 
-  if (!showImages.value) {
-    temp.querySelectorAll('img').forEach(img => img.remove())
-  }
+  temp.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || img.getAttribute('data-src') || ''
+    if (!showImages.value || img.dataset.printBroken === '1' || !src.trim()) {
+      img.remove()
+    }
+  })
 
   return temp.innerHTML
 })
@@ -269,10 +278,20 @@ const fontSizeStyle = computed(() => {
   return sizes[fontSize.value] || sizes.medium
 })
 
+const removeBrokenImagesInPrintArea = () => {
+  document.querySelectorAll('#print-area img').forEach(img => {
+    const src = img.currentSrc || img.getAttribute('src') || img.getAttribute('data-src') || ''
+    if (!src.trim() || (img.complete && img.naturalWidth === 0)) {
+      img.remove()
+    }
+  })
+}
+
 // 触发打印
 const handlePrint = () => {
   if (!article.value) return
   nextTick(() => {
+    removeBrokenImagesInPrintArea()
     window.print()
   })
 }
@@ -495,7 +514,7 @@ const reset = () => {
           </div>
 
           <!-- 文章正文 -->
-          <article class="article-content text-gray-800" v-html="cleanedContent"></article>
+          <article class="article-content text-gray-800" @error.capture="handleImageError" v-html="cleanedContent"></article>
 
           <!-- 页脚 -->
           <footer v-if="showHeaderFooter" class="print-footer text-xs text-gray-400 border-t border-gray-200 pt-2 mt-8">
@@ -533,7 +552,7 @@ const reset = () => {
           <!-- 开关项 -->
           <div class="space-y-3 mb-5">
             <label class="flex items-center justify-between cursor-pointer">
-              <span class="text-sm text-gray-700 dark:text-gray-300">打印图片</span>
+              <span class="text-sm text-gray-700 dark:text-gray-300">打印图片（默认关闭）</span>
               <div class="relative">
                 <input type="checkbox" v-model="showImages" class="sr-only peer">
                 <div class="w-9 h-5 bg-gray-300 dark:bg-gray-600 peer-checked:bg-blue-500 rounded-full transition-colors"></div>
