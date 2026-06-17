@@ -29,7 +29,7 @@ const isActiveRoute = (path) => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
           爸妈工具箱
-          <span class="hidden sm:inline-flex items-center ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 text-sm font-normal text-gray-500 dark:text-gray-400">
+          <span class="hidden sm:inline-flex items-center ml-5 pl-4 border-l border-gray-200 dark:border-gray-700 text-sm font-normal text-gray-500 dark:text-gray-400">
             爸妈的好帮手
           </span>
         </RouterLink>

@@ -18,7 +18,7 @@ const aiToolsNavItems = ref([
   { id: 'ai-image', title: 'AI图形生成', icon: 'image' },
   { id: 'ai-video', title: 'AI视频生成', icon: 'video' },
   { id: 'ai-learning', title: 'AI学习资源', icon: 'learning' },
-  { id: 'ai-audio', title: 'AI音频处理', icon: 'audio' }
+  { id: 'ai-audio', title: 'AI音视频处理', icon: 'audio' }
 ])
 
 const studyAssistantNavItems = ref([
