@@ -308,6 +308,17 @@ const tagColors = {
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">为图片添加文字或图片水印，支持批量处理</p>
             <RouterLink to="/image-watermark" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
           </div>
+
+          <div class="tool-card hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+            <div class="mb-4 flex items-center justify-center h-24 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">批量调整尺寸</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 truncate">预设证件照规格或自定义宽高，自动旋转裁剪</p>
+            <RouterLink to="/image-resize" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">使用工具 →</RouterLink>
+          </div>
         </div>
       </section>
 
