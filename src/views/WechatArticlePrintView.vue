@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 // 模式切换：link=链接模式（默认），paste=粘贴模式
 const mode = ref('link')
@@ -14,6 +16,24 @@ const fontSize = ref('medium') // small / medium / large
 const showImages = ref(false)
 const removeAds = ref(true)
 const showHeaderFooter = ref(true)
+
+// PDF 导出选项
+const pdfPageSize = ref('a4') // a4 / a5 / letter
+const pdfOrientation = ref('portrait') // portrait / landscape
+const pdfImageQuality = ref(0.92) // 0.1 - 1.0
+const isExporting = ref(false)
+const exportProgress = ref('')
+
+const PDF_PAGE_SIZES = [
+  { value: 'a4', label: 'A4' },
+  { value: 'a5', label: 'A5' },
+  { value: 'letter', label: 'Letter' }
+]
+
+const PDF_ORIENTATIONS = [
+  { value: 'portrait', label: '纵向' },
+  { value: 'landscape', label: '横向' }
+]
 
 // API地址（部署Vercel后替换为实际地址）
 const API_BASE = import.meta.env.VITE_API_BASE || ''
@@ -294,6 +314,76 @@ const handlePrint = () => {
     removeBrokenImagesInPrintArea()
     window.print()
   })
+}
+
+// 导出 PDF（html2canvas 渲染 + jsPDF 分页切片）
+const exportToPdf = async () => {
+  if (!article.value) return
+  isExporting.value = true
+  errorMessage.value = ''
+  exportProgress.value = '正在渲染页面...'
+
+  try {
+    await nextTick()
+    removeBrokenImagesInPrintArea()
+
+    const element = document.getElementById('print-area')
+    if (!element) throw new Error('未找到打印区域')
+
+    // 渲染为 canvas，scale=2 保证清晰度
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      imageTimeout: 15000
+    })
+
+    exportProgress.value = '正在生成 PDF...'
+
+    const pdf = new jsPDF({
+      orientation: pdfOrientation.value,
+      unit: 'mm',
+      format: pdfPageSize.value
+    })
+
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+
+    // 按页面宽度等比缩放图片
+    const imgWidth = pageWidth
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+    const imgData = canvas.toDataURL('image/jpeg', pdfImageQuality.value)
+
+    // 分页切片：把长图按页高切分
+    let heightLeft = imgHeight
+    let position = 0
+
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+    heightLeft -= pageHeight
+
+    while (heightLeft > 0) {
+      position -= pageHeight
+      pdf.addPage()
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+    }
+
+    exportProgress.value = '正在保存...'
+
+    // 生成文件名（去除文件名非法字符）
+    const rawTitle = article.value.title || '公众号文章'
+    const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '').trim() || '公众号文章'
+    pdf.save(`${safeTitle}.pdf`)
+  } catch (e) {
+    console.error('PDF导出失败:', e)
+    errorMessage.value = `PDF导出失败：${e.message}。图片可能因跨域无法渲染，可尝试关闭图片后导出`
+  } finally {
+    isExporting.value = false
+    exportProgress.value = ''
+  }
 }
 
 // 重置
@@ -579,6 +669,34 @@ const reset = () => {
             </label>
           </div>
 
+          <!-- PDF 导出设置 -->
+          <div class="mb-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">导出 PDF 设置</h4>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">页面大小</label>
+                <select v-model="pdfPageSize"
+                        class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                  <option v-for="size in PDF_PAGE_SIZES" :key="size.value" :value="size.value">{{ size.label }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">页面方向</label>
+                <select v-model="pdfOrientation"
+                        class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                  <option v-for="ori in PDF_ORIENTATIONS" :key="ori.value" :value="ori.value">{{ ori.label }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  图片质量: {{ Math.round(pdfImageQuality * 100) }}%
+                </label>
+                <input type="range" v-model="pdfImageQuality" min="0.3" max="1" step="0.02"
+                       class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+              </div>
+            </div>
+          </div>
+
           <!-- 操作按钮 -->
           <div class="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
@@ -591,6 +709,26 @@ const reset = () => {
               打印 / 另存为PDF
             </button>
             <button
+              @click="exportToPdf"
+              :disabled="isExporting"
+              :class="[
+                'w-full py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
+                isExporting
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              ]"
+            >
+              <svg v-if="!isExporting" class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0116.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
+                <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
+              </svg>
+              <svg v-else class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              {{ isExporting ? (exportProgress || '导出中...') : '导出 PDF 文件' }}
+            </button>
+            <button
               @click="reset"
               class="w-full py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
             >
@@ -598,7 +736,9 @@ const reset = () => {
             </button>
           </div>
 
-          <p class="text-xs text-gray-400 mt-4">点击打印后会弹出系统打印对话框，可选择打印机或另存为PDF</p>
+          <p class="text-xs text-gray-400 mt-4">
+            「打印」使用系统打印对话框；「导出 PDF」直接生成 PDF 文件下载，可选页面大小、方向、图片质量
+          </p>
         </div>
       </div>
     </div>
