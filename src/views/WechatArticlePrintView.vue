@@ -440,10 +440,36 @@ const exportToPdf = async () => {
 
     exportProgress.value = '正在保存...'
 
-    // 生成文件名（去除文件名非法字符）
+    // 生成文件名（去除文件名非法字符 + emoji + 控制字符；为空则兜底）
     const rawTitle = article.value.title || '公众号文章'
-    const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '').trim() || '公众号文章'
-    pdf.save(`${safeTitle}.pdf`)
+    let safeTitle = rawTitle
+      .replace(/[\\/:*?"<>|]/g, '') // 文件系统非法字符
+      .replace(/[\u0000-\u001F\u007F]/g, '') // 控制字符
+      .replace(/\p{Extended_Pictographic}/gu, '') // emoji
+      .trim()
+    if (!safeTitle) safeTitle = '公众号文章'
+    if (safeTitle.length > 80) safeTitle = safeTitle.slice(0, 80)
+    const fileName = `${safeTitle}.pdf`
+
+    // 用 blob + a 标签手动触发下载，规避 pdf.save 在部分浏览器/文件名场景下静默失败的问题
+    try {
+      const blob = pdf.output('blob')
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      // 延迟清理，给浏览器时间发起下载
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 1000)
+    } catch (saveErr) {
+      console.error('blob 下载失败，回退 pdf.save:', saveErr)
+      pdf.save(fileName)
+    }
   } catch (e) {
     console.error('PDF导出失败:', e)
     errorMessage.value = `PDF导出失败：${e.message}。图片可能因跨域无法渲染，可尝试关闭图片后导出`
