@@ -316,12 +316,12 @@ const handlePrint = () => {
   })
 }
 
-// 导出 PDF（html2canvas 渲染 + jsPDF 分页切片）
+// 导出 PDF（逐元素分页，避免文字行被截断）
 const exportToPdf = async () => {
   if (!article.value) return
   isExporting.value = true
   errorMessage.value = ''
-  exportProgress.value = '正在渲染页面...'
+  exportProgress.value = '正在准备...'
 
   try {
     await nextTick()
@@ -329,18 +329,6 @@ const exportToPdf = async () => {
 
     const element = document.getElementById('print-area')
     if (!element) throw new Error('未找到打印区域')
-
-    // 渲染为 canvas，scale=2 保证清晰度
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-      logging: false,
-      imageTimeout: 15000
-    })
-
-    exportProgress.value = '正在生成 PDF...'
 
     const pdf = new jsPDF({
       orientation: pdfOrientation.value,
@@ -350,25 +338,104 @@ const exportToPdf = async () => {
 
     const pageWidth = pdf.internal.pageSize.getWidth()
     const pageHeight = pdf.internal.pageSize.getHeight()
+    const margin = 8 // 页面边距 mm
+    const contentWidth = pageWidth - margin * 2
+    const contentHeight = pageHeight - margin * 2
 
-    // 按页面宽度等比缩放图片
-    const imgWidth = pageWidth
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    // 收集需要逐个渲染的 block 节点：按 #print-area 直接子节点顺序遍历
+    // 文章正文（.article-content）需展开为其子节点（段落/图片/标题），让分页落在自然边界
+    const blocks = []
+    Array.from(element.children).forEach((child) => {
+      if (child.classList && child.classList.contains('article-content')) {
+        // 展开正文为段落级子节点
+        Array.from(child.children).forEach((grand) => {
+          if (!grand.textContent.trim() && !grand.querySelector('img')) return
+          blocks.push(grand)
+        })
+      } else {
+        if (!child.textContent.trim() && !child.querySelector('img')) return
+        blocks.push(child)
+      }
+    })
 
-    const imgData = canvas.toDataURL('image/jpeg', pdfImageQuality.value)
+    if (blocks.length === 0) {
+      // 兜底：没识别到 block 就走整页方案
+      blocks.push(element)
+    }
 
-    // 分页切片：把长图按页高切分
-    let heightLeft = imgHeight
-    let position = 0
+    let yCursor = margin // 当前页 y 位置（mm）
+    let pageIndex = 0
 
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-    heightLeft -= pageHeight
+    for (let i = 0; i < blocks.length; i++) {
+      exportProgress.value = `正在渲染 ${i + 1} / ${blocks.length}...`
 
-    while (heightLeft > 0) {
-      position -= pageHeight
-      pdf.addPage()
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
+      const block = blocks[i]
+      // 渲染单个 block 为 canvas
+      const canvas = await html2canvas(block, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000
+      })
+
+      // 等比换算到 PDF 页面宽度
+      const blockWidthMm = contentWidth
+      const blockHeightMm = (canvas.height * blockWidthMm) / canvas.width
+      const imgData = canvas.toDataURL('image/jpeg', pdfImageQuality.value)
+
+      // 单 block 高于一页：自身需要切片（仅图片才会出现）
+      if (blockHeightMm > contentHeight) {
+        // 当前页若已有内容则换页
+        if (yCursor > margin) {
+          pdf.addPage()
+          pageIndex++
+          yCursor = margin
+        }
+        // 按页切分该超大 block
+        let heightLeft = blockHeightMm
+        let posY = margin
+        while (heightLeft > 0) {
+          const drawH = Math.min(heightLeft, contentHeight)
+          // 用 clip 方式绘制：通过把整图放在 posY-(已绘高度) 位置，靠页面边界裁剪
+          // jsPDF 没有 clip API，这里通过 canvas 二次切片实现
+          const sliceCanvas = document.createElement('canvas')
+          const sliceRatio = canvas.width / blockWidthMm // px per mm
+          sliceCanvas.width = canvas.width
+          sliceCanvas.height = Math.round(drawH * sliceRatio)
+          const ctx = sliceCanvas.getContext('2d')
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height)
+          const sourceY = (blockHeightMm - heightLeft) * sliceRatio
+          ctx.drawImage(canvas, 0, -sourceY)
+          const sliceData = sliceCanvas.toDataURL('image/jpeg', pdfImageQuality.value)
+          pdf.addImage(sliceData, 'JPEG', margin, margin, blockWidthMm, drawH)
+          heightLeft -= drawH
+          if (heightLeft > 0) {
+            pdf.addPage()
+            pageIndex++
+          }
+        }
+        yCursor = margin + Math.min(blockHeightMm % contentHeight || contentHeight, contentHeight)
+        // 若刚好填满一页，下个 block 应另起一页
+        if (blockHeightMm % contentHeight === 0) {
+          pdf.addPage()
+          pageIndex++
+          yCursor = margin
+        }
+        continue
+      }
+
+      // 普通 block：放得下就放当前页，放不下换页
+      if (yCursor + blockHeightMm > pageHeight - margin) {
+        pdf.addPage()
+        pageIndex++
+        yCursor = margin
+      }
+
+      pdf.addImage(imgData, 'JPEG', margin, yCursor, blockWidthMm, blockHeightMm)
+      yCursor += blockHeightMm + 1 // block 之间留 1mm 间隙
     }
 
     exportProgress.value = '正在保存...'
