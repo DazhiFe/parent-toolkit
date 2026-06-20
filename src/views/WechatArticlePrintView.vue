@@ -316,12 +316,12 @@ const handlePrint = () => {
   })
 }
 
-// 导出 PDF（逐元素分页，避免文字行被截断）
+// 导出 PDF（整页渲染 + 智能切片：切片位置向上寻找白色行，避免切到文字）
 const exportToPdf = async () => {
   if (!article.value) return
   isExporting.value = true
   errorMessage.value = ''
-  exportProgress.value = '正在准备...'
+  exportProgress.value = '正在渲染页面...'
 
   try {
     await nextTick()
@@ -329,6 +329,18 @@ const exportToPdf = async () => {
 
     const element = document.getElementById('print-area')
     if (!element) throw new Error('未找到打印区域')
+
+    // 整页渲染为高分辨率 canvas
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      imageTimeout: 15000
+    })
+
+    exportProgress.value = '正在生成 PDF...'
 
     const pdf = new jsPDF({
       orientation: pdfOrientation.value,
@@ -338,104 +350,90 @@ const exportToPdf = async () => {
 
     const pageWidth = pdf.internal.pageSize.getWidth()
     const pageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 8 // 页面边距 mm
+    const margin = 8
     const contentWidth = pageWidth - margin * 2
     const contentHeight = pageHeight - margin * 2
 
-    // 收集需要逐个渲染的 block 节点：按 #print-area 直接子节点顺序遍历
-    // 文章正文（.article-content）需展开为其子节点（段落/图片/标题），让分页落在自然边界
-    const blocks = []
-    Array.from(element.children).forEach((child) => {
-      if (child.classList && child.classList.contains('article-content')) {
-        // 展开正文为段落级子节点
-        Array.from(child.children).forEach((grand) => {
-          if (!grand.textContent.trim() && !grand.querySelector('img')) return
-          blocks.push(grand)
-        })
-      } else {
-        if (!child.textContent.trim() && !child.querySelector('img')) return
-        blocks.push(child)
-      }
-    })
+    // 像素与 mm 比值
+    const pxPerMm = canvas.width / contentWidth
+    const pageHeightPx = Math.floor(contentHeight * pxPerMm) // 单页对应的源图像素高度
 
-    if (blocks.length === 0) {
-      // 兜底：没识别到 block 就走整页方案
-      blocks.push(element)
+    // 准备像素数据用于"白色行"检测
+    const ctx = canvas.getContext('2d')
+    // 阈值：超过此值视为"接近白色"
+    const WHITE_THRESHOLD = 240
+    // 单页可向上回退的最大像素数（避免无限回退导致页面太空）
+    const MAX_LOOKBACK = Math.floor(pageHeightPx * 0.15)
+
+    // 判断指定 y 行是否为"白色行"（整行无明显文字像素）
+    const isWhiteRow = (y) => {
+      if (y < 0 || y >= canvas.height) return true
+      const data = ctx.getImageData(0, y, canvas.width, 1).data
+      for (let i = 0; i < data.length; i += 4) {
+        // 忽略完全透明像素
+        if (data[i + 3] < 10) continue
+        if (data[i] < WHITE_THRESHOLD || data[i + 1] < WHITE_THRESHOLD || data[i + 2] < WHITE_THRESHOLD) {
+          return false
+        }
+      }
+      return true
     }
 
-    let yCursor = margin // 当前页 y 位置（mm）
-    let pageIndex = 0
-
-    for (let i = 0; i < blocks.length; i++) {
-      exportProgress.value = `正在渲染 ${i + 1} / ${blocks.length}...`
-
-      const block = blocks[i]
-      // 渲染单个 block 为 canvas
-      const canvas = await html2canvas(block, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        logging: false,
-        imageTimeout: 15000
-      })
-
-      // 等比换算到 PDF 页面宽度
-      const blockWidthMm = contentWidth
-      const blockHeightMm = (canvas.height * blockWidthMm) / canvas.width
-      const imgData = canvas.toDataURL('image/jpeg', pdfImageQuality.value)
-
-      // 单 block 高于一页：自身需要切片（仅图片才会出现）
-      if (blockHeightMm > contentHeight) {
-        // 当前页若已有内容则换页
-        if (yCursor > margin) {
-          pdf.addPage()
-          pageIndex++
-          yCursor = margin
-        }
-        // 按页切分该超大 block
-        let heightLeft = blockHeightMm
-        let posY = margin
-        while (heightLeft > 0) {
-          const drawH = Math.min(heightLeft, contentHeight)
-          // 用 clip 方式绘制：通过把整图放在 posY-(已绘高度) 位置，靠页面边界裁剪
-          // jsPDF 没有 clip API，这里通过 canvas 二次切片实现
-          const sliceCanvas = document.createElement('canvas')
-          const sliceRatio = canvas.width / blockWidthMm // px per mm
-          sliceCanvas.width = canvas.width
-          sliceCanvas.height = Math.round(drawH * sliceRatio)
-          const ctx = sliceCanvas.getContext('2d')
-          ctx.fillStyle = '#ffffff'
-          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height)
-          const sourceY = (blockHeightMm - heightLeft) * sliceRatio
-          ctx.drawImage(canvas, 0, -sourceY)
-          const sliceData = sliceCanvas.toDataURL('image/jpeg', pdfImageQuality.value)
-          pdf.addImage(sliceData, 'JPEG', margin, margin, blockWidthMm, drawH)
-          heightLeft -= drawH
-          if (heightLeft > 0) {
-            pdf.addPage()
-            pageIndex++
+    // 从 targetY 向上寻找一段连续白色行作为安全切割位置
+    // 返回切割位置（源图 y 像素），找不到则返回 targetY（按原计划切）
+    const findSafeCutY = (targetY) => {
+      if (targetY >= canvas.height) return canvas.height
+      // 需要至少连续 2 行白才认为是安全位置
+      const NEED_WHITE = 2
+      let whiteCount = 0
+      const minY = Math.max(0, targetY - MAX_LOOKBACK)
+      for (let y = targetY; y >= minY; y--) {
+        if (isWhiteRow(y)) {
+          whiteCount++
+          if (whiteCount >= NEED_WHITE) {
+            return y + NEED_WHITE // 切在白带的下边缘
           }
+        } else {
+          whiteCount = 0
         }
-        yCursor = margin + Math.min(blockHeightMm % contentHeight || contentHeight, contentHeight)
-        // 若刚好填满一页，下个 block 应另起一页
-        if (blockHeightMm % contentHeight === 0) {
-          pdf.addPage()
-          pageIndex++
-          yCursor = margin
-        }
-        continue
+      }
+      // 找不到安全位置，返回原目标
+      return targetY
+    }
+
+    // 逐页切片
+    let cursorY = 0
+    let pageIdx = 0
+    while (cursorY < canvas.height) {
+      pageIdx++
+      let cutY
+      if (cursorY + pageHeightPx >= canvas.height) {
+        // 最后一页，全部剩余
+        cutY = canvas.height
+      } else {
+        exportProgress.value = `正在分析第 ${pageIdx} 页切割位置...`
+        cutY = findSafeCutY(cursorY + pageHeightPx)
+        // 防御：cutY 不能小于等于 cursorY（极端长内容时强制原位切）
+        if (cutY <= cursorY) cutY = cursorY + pageHeightPx
       }
 
-      // 普通 block：放得下就放当前页，放不下换页
-      if (yCursor + blockHeightMm > pageHeight - margin) {
-        pdf.addPage()
-        pageIndex++
-        yCursor = margin
-      }
+      const sliceHeightPx = cutY - cursorY
+      // 创建切片 canvas
+      const sliceCanvas = document.createElement('canvas')
+      sliceCanvas.width = canvas.width
+      sliceCanvas.height = sliceHeightPx
+      const sctx = sliceCanvas.getContext('2d')
+      sctx.fillStyle = '#ffffff'
+      sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height)
+      sctx.drawImage(canvas, 0, -cursorY)
 
-      pdf.addImage(imgData, 'JPEG', margin, yCursor, blockWidthMm, blockHeightMm)
-      yCursor += blockHeightMm + 1 // block 之间留 1mm 间隙
+      const sliceMmHeight = sliceHeightPx / pxPerMm
+      const sliceData = sliceCanvas.toDataURL('image/jpeg', pdfImageQuality.value)
+
+      if (pageIdx > 1) pdf.addPage()
+      pdf.addImage(sliceData, 'JPEG', margin, margin, contentWidth, sliceMmHeight)
+
+      cursorY = cutY
     }
 
     exportProgress.value = '正在保存...'
@@ -443,15 +441,15 @@ const exportToPdf = async () => {
     // 生成文件名（去除文件名非法字符 + emoji + 控制字符；为空则兜底）
     const rawTitle = article.value.title || '公众号文章'
     let safeTitle = rawTitle
-      .replace(/[\\/:*?"<>|]/g, '') // 文件系统非法字符
-      .replace(/[\u0000-\u001F\u007F]/g, '') // 控制字符
-      .replace(/\p{Extended_Pictographic}/gu, '') // emoji
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, '')
+      .replace(/\p{Extended_Pictographic}/gu, '')
       .trim()
     if (!safeTitle) safeTitle = '公众号文章'
     if (safeTitle.length > 80) safeTitle = safeTitle.slice(0, 80)
     const fileName = `${safeTitle}.pdf`
 
-    // 用 blob + a 标签手动触发下载，规避 pdf.save 在部分浏览器/文件名场景下静默失败的问题
+    // 用 blob + a 标签手动触发下载
     try {
       const blob = pdf.output('blob')
       const url = URL.createObjectURL(blob)
@@ -461,7 +459,6 @@ const exportToPdf = async () => {
       a.style.display = 'none'
       document.body.appendChild(a)
       a.click()
-      // 延迟清理，给浏览器时间发起下载
       setTimeout(() => {
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
