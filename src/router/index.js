@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { nextTick } from 'vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -128,6 +129,22 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     }
   ]
+})
+
+// Cloudflare Web Analytics SPA 路由追踪
+// beacon 脚本加载后 window['__cf Beacon'] 会变成可调用函数
+// 每次路由切换后手动触发 pageview 上报
+router.afterEach(() => {
+  nextTick(() => {
+    const cf = window['__cf Beacon']
+    if (typeof cf === 'function') {
+      try {
+        cf('pageview')
+      } catch (e) {
+        // 静默忽略
+      }
+    }
+  })
 })
 
 export default router
