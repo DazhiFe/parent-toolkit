@@ -1,8 +1,14 @@
 export async function onRequest(context) {
+  const url = new URL(context.request.url)
+
+  // 如果访问的是 fankui.bama.help，重定向到主域名的反馈后台
+  if (url.hostname === 'fankui.bama.help') {
+    return Response.redirect('https://bama.help/feedback-admin', 301)
+  }
+
   const response = await context.next()
 
   // 为所有响应添加安全头
-  // 注：fankui.bama.help → bama.help/feedback-admin 的重定向已由 Cloudflare Redirect Rules 处理，更高效
   const newHeaders = new Headers(response.headers)
   newHeaders.set('X-Frame-Options', 'SAMEORIGIN')
   newHeaders.set('Content-Security-Policy', "frame-ancestors 'self'")
