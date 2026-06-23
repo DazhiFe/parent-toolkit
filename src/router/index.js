@@ -114,6 +114,11 @@ const router = createRouter({
       component: () => import('../views/ImageResizeView.vue')
     },
     {
+      path: '/image-crop',
+      name: 'image-crop',
+      component: () => import('../views/ImageCropView.vue')
+    },
+    {
       path: '/video-download',
       name: 'video-download',
       component: () => import('../views/VideoDownloadView.vue')
