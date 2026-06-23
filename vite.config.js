@@ -28,7 +28,7 @@ function apiProxyPlugin() {
 
         // daily-quote：直接透传
         if (req.url && req.url.startsWith('/daily-quote')) {
-          const remoteUrl = `https://bama.help/api/daily-quote${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`
+          const remoteUrl = `https://bamahelp.com/api/daily-quote${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`
           https.get(remoteUrl, (proxyRes) => {
             res.writeHead(proxyRes.statusCode, proxyRes.headers)
             proxyRes.pipe(res)
@@ -48,7 +48,7 @@ function apiProxyPlugin() {
           return
         }
 
-        const remoteUrl = `https://bama.help/api/parse-wechat?url=${encodeURIComponent(targetUrl)}`
+        const remoteUrl = `https://bamahelp.com/api/parse-wechat?url=${encodeURIComponent(targetUrl)}`
 
         https.get(remoteUrl, (proxyRes) => {
           res.writeHead(proxyRes.statusCode, proxyRes.headers)

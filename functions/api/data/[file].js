@@ -1,5 +1,7 @@
 // 数据文件代理 API — Referer 白名单保护，防止直接 URL 下载
 const ALLOWED_ORIGINS = [
+  'bamahelp.com',
+  'www.bamahelp.com',
   'bama.help',
   'www.bama.help',
   'localhost',

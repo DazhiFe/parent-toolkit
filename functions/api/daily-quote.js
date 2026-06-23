@@ -234,7 +234,7 @@ export async function onRequest(context) {
     // 非刷新模式：CDN 缓存到当天 23:59
     const headers = {
       'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': 'https://bama.help',
+      'Access-Control-Allow-Origin': 'https://bamahelp.com',
     }
 
     if (!forceRefresh) {
