@@ -28,7 +28,7 @@ function apiProxyPlugin() {
 
         // daily-quote：直接透传
         if (req.url && req.url.startsWith('/daily-quote')) {
-          const remoteUrl = `https://bamahelp.com/api/daily-quote${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`
+          const remoteUrl = `https://parent-toolkit.pages.dev/api/daily-quote${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`
           https.get(remoteUrl, (proxyRes) => {
             res.writeHead(proxyRes.statusCode, proxyRes.headers)
             proxyRes.pipe(res)
@@ -48,7 +48,7 @@ function apiProxyPlugin() {
           return
         }
 
-        const remoteUrl = `https://bamahelp.com/api/parse-wechat?url=${encodeURIComponent(targetUrl)}`
+        const remoteUrl = `https://parent-toolkit.pages.dev/api/parse-wechat?url=${encodeURIComponent(targetUrl)}`
 
         https.get(remoteUrl, (proxyRes) => {
           res.writeHead(proxyRes.statusCode, proxyRes.headers)
@@ -73,7 +73,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  base: '/',
+  base: process.env.BASE_URL || '/',
   build: {
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
