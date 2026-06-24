@@ -42,7 +42,7 @@
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 class="text-lg font-semibold text-gray-800 dark:text-white">绘制裁剪区域</h2>
           <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
-            <span>拖拽绘制</span><span>·</span><span>点击选中</span><span>·</span><span>角点调整大小</span><span>·</span><span>Delete 删除</span>
+            <span>拖拽绘制</span><span>·</span><span>点击选中</span><span>·</span><span>拖拽移动</span><span>·</span><span>边缘调整大小</span><span>·</span><span>Delete 删除</span>
           </div>
         </div>
         <div ref="canvasContainerRef" class="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
@@ -191,6 +191,8 @@ const previewRect = ref(null)
 const isResizing = ref(false)
 const resizeHandle = ref(null)
 const resizeStartData = ref(null)
+const isMoving = ref(false)
+const moveStartData = ref(null)
 const croppedResults = ref([])
 const isProcessing = ref(false)
 const canvasDisplayWidth = ref(0)
@@ -239,6 +241,13 @@ function getResizeHandle(px, py, region) {
     if (Math.abs(px - h.x) < 8 && Math.abs(py - h.y) < 8) return h.name
   }
   return null
+}
+
+const HANDLE_CURSORS = {
+  nw: 'nwse-resize', se: 'nwse-resize',
+  ne: 'nesw-resize', sw: 'nesw-resize',
+  n: 'ns-resize', s: 'ns-resize',
+  e: 'ew-resize', w: 'ew-resize',
 }
 
 function redrawCanvas() {
@@ -320,6 +329,8 @@ function onPointerDown(evt) {
     const region = cropRegions.value[i]
     if (pointInRegion(pos.x, pos.y, region)) {
       selectedId.value = region.id
+      isMoving.value = true
+      moveStartData.value = { startX: pos.x, startY: pos.y, region: { ...region } }
       redrawCanvas()
       return
     }
@@ -392,6 +403,38 @@ function onPointerMove(evt) {
         break
     }
     redrawCanvas()
+    return
+  }
+
+  if (isMoving.value && moveStartData.value) {
+    const { region, startX, startY } = moveStartData.value
+    const dx = (pos.x - startX) * scale.value
+    const dy = (pos.y - startY) * scale.value
+    const r = cropRegions.value.find(cr => cr.id === region.id)
+    if (!r) return
+    r.x = Math.max(0, Math.round(region.x + dx))
+    r.y = Math.max(0, Math.round(region.y + dy))
+    redrawCanvas()
+    return
+  }
+
+  // 空闲状态：检测鼠标悬停位置，更新光标样式
+  const canvas = canvasRef.value
+  if (canvas) {
+    let cursor = 'crosshair'
+    for (let i = cropRegions.value.length - 1; i >= 0; i--) {
+      const region = cropRegions.value[i]
+      const handle = getResizeHandle(pos.x, pos.y, region)
+      if (handle) {
+        cursor = HANDLE_CURSORS[handle] || 'pointer'
+        break
+      }
+      if (pointInRegion(pos.x, pos.y, region)) {
+        cursor = 'move'
+        break
+      }
+    }
+    canvas.style.cursor = cursor
   }
 }
 
@@ -416,6 +459,8 @@ function onPointerUp(evt) {
   isResizing.value = false
   resizeHandle.value = null
   resizeStartData.value = null
+  isMoving.value = false
+  moveStartData.value = null
 }
 
 function handleUpload(evt) {
