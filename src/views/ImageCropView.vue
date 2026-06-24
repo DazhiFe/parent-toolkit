@@ -150,9 +150,9 @@
             <div class="aspect-square bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
               <img :src="item.url" class="max-w-full max-h-full object-contain" />
             </div>
-            <div class="p-2 flex items-center justify-between">
-              <span class="text-xs text-gray-500 dark:text-gray-400">{{ item.width }}×{{ item.height }}</span>
-              <button @click="downloadSingle(item)" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">下载</button>
+            <div class="p-2 flex items-center justify-between gap-2">
+              <span class="text-xs text-gray-500 dark:text-gray-400 truncate min-w-0">{{ Math.round(item.width) }}×{{ Math.round(item.height) }}</span>
+              <button @click="downloadSingle(item)" class="text-xs text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0">下载</button>
             </div>
           </div>
         </div>
