@@ -27,9 +27,8 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # GitHub Pages project page 子路径部署
-          # 默认 URL: dazhife.github.io/parent-toolkit/ | 自定义域名: bamahelp.com/parent-toolkit/
-          BASE_URL: /parent-toolkit/
+          # GitHub Pages 自定义域名部署（bamahelp.com），根路径服务
+          BASE_URL: /
           # GitHub Pages 版本的 API 走 Cloudflare Pages Functions（国内可达）
           VITE_API_BASE: https://parent-toolkit.pages.dev
       - name: 复制 index.html 为 404.html（SPA 路由 fallback）
