@@ -199,6 +199,11 @@ export async function onRequest(context) {
   const { request, env } = context
   const DEEPSEEK_API_KEY = (env && env.DEEPSEEK_API_KEY) || ''
 
+  // CORS — 动态白名单
+  const requestOrigin = request.headers.get('Origin') || ''
+  const allowedOrigins = ['https://bamahelp.com', 'https://www.bamahelp.com', 'https://bama.help', 'https://www.bama.help', 'https://parent-toolkit.pages.dev', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173']
+  const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : 'https://bamahelp.com'
+
   // 获取当前日期（北京时间）
   const now = new Date()
   const bjTime = new Date(now.getTime() + 8 * 60 * 60 * 1000)
@@ -234,7 +239,7 @@ export async function onRequest(context) {
     // 非刷新模式：CDN 缓存到当天 23:59
     const headers = {
       'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': 'https://bamahelp.com',
+      'Access-Control-Allow-Origin': corsOrigin,
     }
 
     if (!forceRefresh) {

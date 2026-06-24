@@ -5,7 +5,8 @@ let poemsPromise = null
 export function loadPoems() {
   if (poemsCache) return Promise.resolve(poemsCache)
   if (poemsPromise) return poemsPromise
-  poemsPromise = fetch('/api/data/poems')
+  const API_BASE = import.meta.env.VITE_API_BASE || ''
+  poemsPromise = fetch(`${API_BASE}/api/data/poems`)
     .then((res) => {
       if (!res.ok) throw new Error('加载诗词数据失败')
       return res.json()

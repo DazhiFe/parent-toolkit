@@ -75,7 +75,7 @@ const fetchArticle = async () => {
 
   try {
     const apiUrl = API_BASE
-      ? `${API_BASE}/?url=${encodeURIComponent(url)}`
+      ? `${API_BASE}/api/parse-wechat?url=${encodeURIComponent(url)}`
       : `/api/parse-wechat?url=${encodeURIComponent(url)}`
 
     const controller = new AbortController()

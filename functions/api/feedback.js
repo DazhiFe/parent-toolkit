@@ -3,7 +3,7 @@ export async function onRequest(context) {
 
   // CORS headers — 白名单限制
   const requestOrigin = request.headers.get('Origin') || ''
-  const allowedOrigins = ['https://bamahelp.com', 'https://www.bamahelp.com', 'https://bama.help', 'https://www.bama.help', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173']
+  const allowedOrigins = ['https://bamahelp.com', 'https://www.bamahelp.com', 'https://bama.help', 'https://www.bama.help', 'https://parent-toolkit.pages.dev', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173']
   const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : 'https://bamahelp.com'
   const corsHeaders = {
     'Access-Control-Allow-Origin': corsOrigin,
