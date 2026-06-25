@@ -63,14 +63,14 @@
         </h2>
         <div class="space-y-3">
           <div
-            v-for="region in cropRegions"
+            v-for="(region, index) in cropRegions"
             :key="region.id"
             class="flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer"
             :class="selectedId === region.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50'"
             @click="selectRegion(region.id)"
           >
             <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0" :style="{ backgroundColor: region.color }">
-              {{ region.id }}
+              {{ index + 1 }}
             </div>
             <div class="flex-1 grid grid-cols-4 gap-2 text-sm">
               <div>
@@ -253,7 +253,7 @@ function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(originalImage.value, 0, 0, canvas.width, canvas.height)
 
-  cropRegions.value.forEach(region => {
+  cropRegions.value.forEach((region, index) => {
     const sx = region.x / scale.value
     const sy = region.y / scale.value
     const sw = region.width / scale.value
@@ -273,7 +273,7 @@ function redrawCanvas() {
     ctx.font = 'bold 12px sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(String(region.id), sx + 12, sy + 10)
+    ctx.fillText(String(index + 1), sx + 12, sy + 10)
 
     if (selectedId.value === region.id) {
       ctx.fillStyle = '#ffffff'
