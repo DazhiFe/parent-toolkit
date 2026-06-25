@@ -49,13 +49,9 @@
           <canvas
             ref="canvasRef"
             class="block w-full cursor-crosshair touch-none"
-            @mousedown="onPointerDown"
-            @mousemove="onPointerMove"
-            @mouseup="onPointerUp"
-            @mouseleave="onPointerUp"
-            @touchstart="onPointerDown"
-            @touchmove="onPointerMove"
-            @touchend="onPointerUp"
+            @pointerdown="onPointerDown"
+            @pointermove="onPointerMove"
+            @pointerup="onPointerUp"
           ></canvas>
         </div>
       </div>
@@ -310,6 +306,10 @@ function redrawCanvas() {
 function onPointerDown(evt) {
   evt.preventDefault()
   if (!originalImage.value) return
+  // 捕获指针：鼠标移出 canvas 也能继续接收事件
+  if (evt.pointerId !== undefined) {
+    try { evt.target.setPointerCapture(evt.pointerId) } catch (e) {}
+  }
   const pos = getCanvasPos(evt)
 
   for (let i = cropRegions.value.length - 1; i >= 0; i--) {
@@ -439,6 +439,10 @@ function onPointerMove(evt) {
 }
 
 function onPointerUp(evt) {
+  // 释放指针捕获
+  if (evt && evt.pointerId !== undefined && evt.target) {
+    try { evt.target.releasePointerCapture(evt.pointerId) } catch (e) {}
+  }
   if (isDrawing.value) {
     isDrawing.value = false
     if (previewRect.value && previewRect.value.width > 10 && previewRect.value.height > 10) {
