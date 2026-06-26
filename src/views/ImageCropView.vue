@@ -10,7 +10,14 @@
       </div>
 
       <!-- 上传区 -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 transition-all"
+        :class="isDraggingOver ? 'ring-2 ring-blue-400 dark:ring-blue-500' : ''"
+        @dragenter.prevent="handleDragEnter"
+        @dragover.prevent="handleDragOver"
+        @dragleave.prevent="handleDragLeave"
+        @drop.prevent="handleDrop"
+      >
         <div
           v-if="!originalImage"
           class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-10 text-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
@@ -19,7 +26,7 @@
           <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
           </svg>
-          <p class="text-gray-600 dark:text-gray-400">点击上传图片</p>
+          <p class="text-gray-600 dark:text-gray-400">点击上传、拖拽图片到这里，或直接粘贴图片</p>
           <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">支持 JPG、PNG、WebP</p>
         </div>
         <div v-else class="flex items-center justify-between">
@@ -29,7 +36,7 @@
             </div>
             <div>
               <p class="text-sm font-medium text-gray-900 dark:text-white">{{ uploadedFile?.name }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ originalWidth }} × {{ originalHeight }} px</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ originalWidth }} × {{ originalHeight }} px · 支持拖拽或粘贴替换</p>
             </div>
           </div>
           <button @click="replaceImage" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">更换图片</button>
@@ -193,6 +200,8 @@ const croppedResults = ref([])
 const isProcessing = ref(false)
 const canvasDisplayWidth = ref(0)
 const canvasDisplayHeight = ref(0)
+const isDraggingOver = ref(false)
+let dragDepth = 0
 
 const scale = computed(() => {
   if (!canvasDisplayWidth.value || !originalWidth.value) return 1
@@ -467,21 +476,35 @@ function onPointerUp(evt) {
   moveStartData.value = null
 }
 
-function handleUpload(evt) {
-  const file = evt.target.files[0]
+function getImageFileFromList(files) {
+  return Array.from(files || []).find(file => file?.type?.startsWith('image/'))
+}
+
+function resetImageState(file) {
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+  croppedResults.value.forEach(item => {
+    if (item.url) URL.revokeObjectURL(item.url)
+  })
+  cropRegions.value = []
+  croppedResults.value = []
+  selectedId.value = null
+  regionIdCounter = 1
+  originalImage.value = null
+  originalWidth.value = 0
+  originalHeight.value = 0
+
+  uploadedFile.value = file
+  previewUrl.value = URL.createObjectURL(file)
+}
+
+function loadImageFile(file) {
   if (!file) return
   if (!file.type.startsWith('image/')) {
     warning('请选择图片文件')
     return
   }
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-  cropRegions.value = []
-  croppedResults.value = []
-  selectedId.value = null
-  regionIdCounter = 1
 
-  uploadedFile.value = file
-  previewUrl.value = URL.createObjectURL(file)
+  resetImageState(file)
 
   const img = new Image()
   img.onload = () => {
@@ -489,8 +512,58 @@ function handleUpload(evt) {
     originalWidth.value = img.naturalWidth
     originalHeight.value = img.naturalHeight
     nextTick(() => setupCanvas())
+    success('图片已加载')
   }
+  img.onerror = () => warning('图片加载失败，请换一张图片试试')
   img.src = previewUrl.value
+}
+
+function handleUpload(evt) {
+  const file = evt.target.files[0]
+  loadImageFile(file)
+  evt.target.value = ''
+}
+
+function handleDragEnter(evt) {
+  dragDepth += 1
+  if (getImageFileFromList(evt.dataTransfer?.items || evt.dataTransfer?.files)) {
+    isDraggingOver.value = true
+  }
+}
+
+function handleDragOver(evt) {
+  if (getImageFileFromList(evt.dataTransfer?.items || evt.dataTransfer?.files)) {
+    isDraggingOver.value = true
+  }
+}
+
+function handleDragLeave() {
+  dragDepth = Math.max(0, dragDepth - 1)
+  if (dragDepth === 0) isDraggingOver.value = false
+}
+
+function handleDrop(evt) {
+  dragDepth = 0
+  isDraggingOver.value = false
+  const file = getImageFileFromList(evt.dataTransfer?.files)
+  if (!file) {
+    warning('请拖入图片文件')
+    return
+  }
+  loadImageFile(file)
+}
+
+function handlePaste(evt) {
+  const clipboardData = evt.clipboardData
+  if (!clipboardData) return
+  let file = getImageFileFromList(clipboardData.files)
+  if (!file) {
+    const item = Array.from(clipboardData.items || []).find(i => i.kind === 'file' && i.type.startsWith('image/'))
+    file = item?.getAsFile()
+  }
+  if (!file) return
+  evt.preventDefault()
+  loadImageFile(file)
 }
 
 function replaceImage() {
@@ -662,11 +735,13 @@ function updateRegionFromInput(region) {
 onMounted(() => {
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('resize', setupCanvas)
+  window.addEventListener('paste', handlePaste)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('resize', setupCanvas)
+  window.removeEventListener('paste', handlePaste)
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   croppedResults.value.forEach(item => {
     if (item.url) URL.revokeObjectURL(item.url)
